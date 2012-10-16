@@ -65,6 +65,9 @@ for ista = 1:length(stainfo)
 			continue;
 		end
 		% request dataset pointer
+		if exist(trptr1)
+			trdestroy(trptr1);
+		end
 		trptr1=trload_css(dbtr1,ts,te);
 		% splice segments together
 		trsplice(trptr1,50);
