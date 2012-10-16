@@ -30,7 +30,7 @@ end
 % For PNG dataset, the database time window is:
 % 3/02/2010 (061)  6:59:59.30940 - 8/01/2011 (213)  0:00:36.04000
 array_bgtime = (datenum(2010,3,2) - datenum(1970,1,1))*24*3600;
-array_bgtime = (datenum(2010,5,2) - datenum(1970,1,1))*24*3600;
+%array_bgtime = (datenum(2010,12,2) - datenum(1970,1,1))*24*3600;
 array_endtime = (datenum(2011,8,1) - datenum(1970,1,1))*24*3600;
 time_interval = 3600;
 timegrids = array_bgtime:time_interval:array_endtime;
@@ -67,17 +67,31 @@ for ista = 1:length(stainfo)
 		end
 		substr2=sprintf('(sta =~/%s/) && ((wfdisc.time > %d && wfdisc.time <%d) || (wfdisc.endtime > %d && wfdisc.endtime <%d))',stainfo(ista).staname,ts,te,ts,te);
 		dbtr2=dbsubset(dbwf,substr2);
+		if (dbquery(dbtr2,'dbRECORD_COUNT'))==0
+%			disp(['no data for itime:',num2str(itime)]);
+			continue;
+		end
 		if (dbquery(dbtr2,'dbRECORD_COUNT'))<2
 			disp(['Not enough segments to merge for itime:',num2str(itime)]);
+			continue;
+		end
+		if (dbquery(dbtr2,'dbRECORD_COUNT'))==2
+			segts = dbgetv(dbtr2,'time');
+			segte = dbgetv(dbtr2,'endtime');
+			if min(segts) < ts && max(segte) > te && (abs(max(segts)-min(segte)-0.02)<0.01)
+				stainfo(ista).datacover(itime)=1;
+			else
+				disp(['Failed to merge two segments for itime:',num2str(itime)]);
+			end
 			continue;
 		end
 		% request dataset pointer to try to merge the segments.
 		trptr=trload_css(dbtr2,ts,te);
 		% splice segments together
-		trsplice(trptr,50);
+		trsplice(trptr,5);
 		% if the trace number is larger than 1, means the segments cannot be spliced.
 		if (dbnrecs(trptr)~=1)
-			disp(['Failed to merge segments for itime:',num2str(itime)]);
+			disp(['Failed to merge multi segments for itime:',num2str(itime)]);
 			trdestroy(trptr);
 			continue;
 		end
