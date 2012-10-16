@@ -30,6 +30,7 @@ end
 % For PNG dataset, the database time window is:
 % 3/02/2010 (061)  6:59:59.30940 - 8/01/2011 (213)  0:00:36.04000
 array_bgtime = (datenum(2010,3,2) - datenum(1970,1,1))*24*3600;
+array_bgtime = (datenum(2010,5,2) - datenum(1970,1,1))*24*3600;
 array_endtime = (datenum(2011,8,1) - datenum(1970,1,1))*24*3600;
 time_interval = 3600;
 timegrids = array_bgtime:time_interval:array_endtime;
@@ -54,37 +55,41 @@ for ista = 1:length(stainfo)
 			disp(['Process: ', num2str(newprocess),'%, Data Coverage: '...
 					,num2str(sum(stainfo(ista).datacover)/NT*100),'%']);
 		end
-		% try to find the records that has overlap with this time interval
+		% try to find the records that contains this time interval
 		ts = timegrids(itime);
 		te = timegrids(itime+1);
-		substr1=sprintf('(sta =~/%s/) && ((wfdisc.time <= %d && wfdisc.endtime > %d ) || (wfdisc.time > %d && wfdisc.time <%d) || (wfdisc.endtime > %d && wfdisc.endtime <%d) )',stainfo(ista).staname,ts,te,ts,te,ts,te);
-		clear dbtr1
+		substr1=sprintf('(sta =~/%s/) && (wfdisc.time <= %d && wfdisc.endtime > %d ) ',stainfo(ista).staname,ts,te);
 		dbtr1=dbsubset(dbwf,substr1);
-		if (dbquery(dbtr1,'dbRECORD_COUNT'))==0
-%			disp(['Cannot find data for itime:',num2str(itime)]);
+		if (dbquery(dbtr1,'dbRECORD_COUNT'))==1
+			% there's a data segment that fully contain the window
+			stainfo(ista).datacover(itime)=1;
 			continue;
 		end
-		% request dataset pointer
-		if exist(trptr1)
-			trdestroy(trptr1);
+		substr2=sprintf('(sta =~/%s/) && ((wfdisc.time > %d && wfdisc.time <%d) || (wfdisc.endtime > %d && wfdisc.endtime <%d))',stainfo(ista).staname,ts,te,ts,te);
+		dbtr2=dbsubset(dbwf,substr2);
+		if (dbquery(dbtr2,'dbRECORD_COUNT'))<2
+			disp(['Not enough segments to merge for itime:',num2str(itime)]);
+			continue;
 		end
-		trptr1=trload_css(dbtr1,ts,te);
+		% request dataset pointer to try to merge the segments.
+		trptr=trload_css(dbtr2,ts,te);
 		% splice segments together
-		trsplice(trptr1,50);
+		trsplice(trptr,50);
 		% if the trace number is larger than 1, means the segments cannot be spliced.
-		if (dbnrecs(trptr1)~=1)
+		if (dbnrecs(trptr)~=1)
 			disp(['Failed to merge segments for itime:',num2str(itime)]);
-			trdestroy(trptr1);
+			trdestroy(trptr);
 			continue;
 		end
 		% Check the start time and end time are correct
-		if abs(dbgetv(trptr1,'time')-ts)>1 || abs(dbgetv(trptr1,'endtime')-te)>1
+		if abs(dbgetv(trptr,'time')-ts)>1 || abs(dbgetv(trptr,'endtime')-te)>1
 			disp(['Incorrect beginning time and end time for itime:',num2str(itime)]);
-			trdestroy(trptr1);
+			trdestroy(trptr);
 			continue;
 		end
+		% time window can be merged by two or more segments
 		stainfo(ista).datacover(itime)=1;
-		trdestroy(trptr1);
+		trdestroy(trptr);
 	end
 	save(sprintf('stainfo_midprocess_%d',ista));
 end
