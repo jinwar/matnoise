@@ -33,9 +33,10 @@ array_bgtime = (datenum(2010,3,2) - datenum(1970,1,1))*24*3600;
 array_endtime = (datenum(2011,8,1) - datenum(1970,1,1))*24*3600;
 time_interval = 3600;
 timegrids = array_bgtime:time_interval:array_endtime;
-NT = length(timegrids)
+NT = length(timegrids);
 
 for ista = 1:length(stainfo)
+	% Check mid-process file to recover from the break point
 	disp(['Working on gathering station ', stainfo(ista).staname, ' information']);
 	midprocessfilename = sprintf('stainfo_midprocess_%d',ista);
 	if exist(midprocessfilename,'file')
@@ -46,6 +47,7 @@ for ista = 1:length(stainfo)
 	stainfo(ista).datacover = zeros(length(timegrids)-1,1);
 	oldprocess=0;
 	for itime = 1:NT-1
+		% Displaying the program process
 		newprocess = floor(itime/NT*100);
 		if newprocess>oldprocess
 			oldprocess = newprocess;
@@ -56,10 +58,10 @@ for ista = 1:length(stainfo)
 		ts = timegrids(itime);
 		te = timegrids(itime+1);
 		substr1=sprintf('(sta =~/%s/) && ((wfdisc.time <= %d && wfdisc.endtime > %d ) || (wfdisc.time > %d && wfdisc.time <%d) || (wfdisc.endtime > %d && wfdisc.endtime <%d) )',stainfo(ista).staname,ts,te,ts,te,ts,te);
+		clear dbtr1
 		dbtr1=dbsubset(dbwf,substr1);
 		if (dbquery(dbtr1,'dbRECORD_COUNT'))==0
 %			disp(['Cannot find data for itime:',num2str(itime)]);
-			dbclose(dbtr1);
 			continue;
 		end
 		% request dataset pointer
@@ -69,14 +71,12 @@ for ista = 1:length(stainfo)
 		% if the trace number is larger than 1, means the segments cannot be spliced.
 		if (dbnrecs(trptr1)~=1)
 			disp(['Failed to merge segments for itime:',num2str(itime)]);
-			dbclose(dbtr1);
 			trdestroy(trptr1);
 			continue;
 		end
 		% Check the start time and end time are correct
 		if abs(dbgetv(trptr1,'time')-ts)>1 || abs(dbgetv(trptr1,'endtime')-te)>1
 			disp(['Incorrect beginning time and end time for itime:',num2str(itime)]);
-			dbclose(dbtr1);
 			trdestroy(trptr1);
 			continue;
 		end
