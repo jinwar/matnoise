@@ -86,6 +86,7 @@ for ista = 1:length(stainfo)
 			continue;
 		end
 		% request dataset pointer to try to merge the segments.
+		disp('A tr pointer is assigned!');
 		trptr=trload_css(dbtr2,ts,te);
 		% splice segments together
 		trsplice(trptr,5);
