@@ -37,6 +37,12 @@ NT = length(timegrids)
 
 for ista = 1:length(stainfo)
 	disp(['Working on gathering station ', stainfo(ista).staname, ' information']);
+	midprocessfilename = sprintf('stainfo_midprocess_%d',ista);
+	if exist(midprocessfilename,'file')
+		disp('exist midprocess file, skip!')
+		load midprocessfilename;
+		continue;
+	end
 	stainfo(ista).datacover = zeros(length(timegrids)-1,1);
 	oldprocess=0;
 	for itime = 1:NT-1
@@ -53,6 +59,7 @@ for ista = 1:length(stainfo)
 		dbtr1=dbsubset(dbwf,substr1);
 		if (dbquery(dbtr1,'dbRECORD_COUNT'))==0
 %			disp(['Cannot find data for itime:',num2str(itime)]);
+			dbclose(dbtr1);
 			continue;
 		end
 		% request dataset pointer
@@ -62,18 +69,21 @@ for ista = 1:length(stainfo)
 		% if the trace number is larger than 1, means the segments cannot be spliced.
 		if (dbnrecs(trptr1)~=1)
 			disp(['Failed to merge segments for itime:',num2str(itime)]);
+			dbclose(dbtr1);
 			trdestroy(trptr1);
 			continue;
 		end
 		% Check the start time and end time are correct
 		if abs(dbgetv(trptr1,'time')-ts)>1 || abs(dbgetv(trptr1,'endtime')-te)>1
 			disp(['Incorrect beginning time and end time for itime:',num2str(itime)]);
+			dbclose(dbtr1);
 			trdestroy(trptr1);
 			continue;
 		end
 		stainfo(ista).datacover(itime)=1;
 		trdestroy(trptr1);
 	end
+	save(sprintf('stainfo_midprocess_%d',ista));
 end
 
 save('stainfo_BHZ','stainfo')
