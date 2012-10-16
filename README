@@ -1,0 +1,6 @@
+Program to do Ambient Noise analysis for PNG Antelope dataset.
+
+files description:
+
+matnoise_png_stainfo.m
+	go through the data coverage for each station and find the data gap.
