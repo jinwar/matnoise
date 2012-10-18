@@ -37,76 +37,42 @@ timegrids = array_bgtime:time_interval:array_endtime;
 NT = length(timegrids);
 
 for ista = 1:length(stainfo)
-	% Check mid-process file to recover from the break point
-	disp(['Working on gathering station ', stainfo(ista).staname, ' information']);
-	midprocessfilename = sprintf('stainfo_midprocess_%d',ista);
-	if exist(midprocessfilename,'file')
-		disp('exist midprocess file, skip!')
-		load midprocessfilename;
+
+	% Initializing the datacover vector
+	stainfo(ista).datacover = zeros(length(timegrids)-1,1);
+
+	% Generate sub database that only contain the information of this station
+	substr=sprintf('(sta =~/%s/)',stainfo(ista).staname);
+	stadbwf=dbsubset(dbwf,substr);
+	if dbquery(stadbwf,'dbRECORD_COUNT')<1
+		disp(['No data found for station ', stainfo(ista).staname]);
 		continue;
 	end
-	stainfo(ista).datacover = zeros(length(timegrids)-1,1);
-	oldprocess=0;
+	wfbgtime = dbgetv(stadbwf,'time');
+	wfendtime = dbgetv(stadbwf,'endtime');
+
 	for itime = 1:NT-1
-		% Displaying the program process
-		newprocess = floor(itime/NT*100);
-		if newprocess>oldprocess
-			oldprocess = newprocess;
-			disp(['Process: ', num2str(newprocess),'%, Data Coverage: '...
-					,num2str(sum(stainfo(ista).datacover)/NT*100),'%']);
-		end
-		% try to find the records that contains this time interval
 		ts = timegrids(itime);
 		te = timegrids(itime+1);
-		substr1=sprintf('(sta =~/%s/) && (wfdisc.time <= %d && wfdisc.endtime > %d ) ',stainfo(ista).staname,ts,te);
-		dbtr1=dbsubset(dbwf,substr1);
-		if (dbquery(dbtr1,'dbRECORD_COUNT'))==1
-			% there's a data segment that fully contain the window
+		% try to find the records that contains this time interval
+		segid = find(wfbgtime < ts & wfendtime > te);
+		if length(segid) == 1
 			stainfo(ista).datacover(itime)=1;
 			continue;
 		end
-		substr2=sprintf('(sta =~/%s/) && ((wfdisc.time > %d && wfdisc.time <%d) || (wfdisc.endtime > %d && wfdisc.endtime <%d))',stainfo(ista).staname,ts,te,ts,te);
-		dbtr2=dbsubset(dbwf,substr2);
-		if (dbquery(dbtr2,'dbRECORD_COUNT'))==0
-%			disp(['no data for itime:',num2str(itime)]);
-			continue;
-		end
-		if (dbquery(dbtr2,'dbRECORD_COUNT'))<2
-			disp(['Not enough segments to merge for itime:',num2str(itime)]);
-			continue;
-		end
-		if (dbquery(dbtr2,'dbRECORD_COUNT'))==2
-			segts = dbgetv(dbtr2,'time');
-			segte = dbgetv(dbtr2,'endtime');
-			if min(segts) < ts && max(segte) > te && (abs(max(segts)-min(segte)-0.02)<0.01)
-				stainfo(ista).datacover(itime)=1;
-			else
-				disp(['Failed to merge two segments for itime:',num2str(itime)]);
+		% if not exist, find two segments that connected in this window
+		segid = find((wfbgtime > ts & wfbgtime < te) | (wfendtime > ts & wfendtime < te ));
+		if length(segid) >1
+			bgtimes = sort(wfbgtime(segid));
+			endtimes = sort(wfendtime(segid));
+			if min(bgtimes) < ts && max(endtimes)>te && (max(bgtimes)-min(endtimes)) < 0.1
+				stainfo(ista).datacover(itime)=2;
+				continue;
 			end
-			continue;
 		end
-		% request dataset pointer to try to merge the segments.
-		disp('A tr pointer is assigned!');
-		trptr=trload_css(dbtr2,ts,te);
-		% splice segments together
-		trsplice(trptr,5);
-		% if the trace number is larger than 1, means the segments cannot be spliced.
-		if (dbnrecs(trptr)~=1)
-			disp(['Failed to merge multi segments for itime:',num2str(itime)]);
-			trdestroy(trptr);
-			continue;
-		end
-		% Check the start time and end time are correct
-		if abs(dbgetv(trptr,'time')-ts)>1 || abs(dbgetv(trptr,'endtime')-te)>1
-			disp(['Incorrect beginning time and end time for itime:',num2str(itime)]);
-			trdestroy(trptr);
-			continue;
-		end
-		% time window can be merged by two or more segments
-		stainfo(ista).datacover(itime)=1;
-		trdestroy(trptr);
-	end
-	save(sprintf('stainfo_midprocess_%d',ista));
-end
+	end % end of time loop
+	disp(['Station: ', stainfo(ista).staname , ' Data Coverage:', ...
+		num2str(sum(stainfo(ista).datacover)/NT*100),'%' ]);
+end % end of station loop
 
 save('stainfo_BHZ','stainfo')
