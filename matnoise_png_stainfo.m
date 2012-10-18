@@ -65,9 +65,14 @@ for ista = 1:length(stainfo)
 		if length(segid) >1
 			bgtimes = sort(wfbgtime(segid));
 			endtimes = sort(wfendtime(segid));
-			if min(bgtimes) < ts && max(endtimes)>te && (max(bgtimes)-min(endtimes)) < 0.1
-				stainfo(ista).datacover(itime)=2;
-				continue;
+			isconnect=1;
+			for iseg = 1:length(endtimes)-1
+				if abs(bgtimes(iseg+1)-endtimes(iseg)) > 0.1
+					isconnect=0;
+				end
+			end % end of segment loop
+			if isconnect
+				stainfo(ista).datacover(itime)=1;
 			end
 		end
 	end % end of time loop
