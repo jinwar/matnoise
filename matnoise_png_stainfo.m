@@ -80,4 +80,4 @@ for ista = 1:length(stainfo)
 		num2str(sum(stainfo(ista).datacover)/NT*100),'%' ]);
 end % end of station loop
 
-save('stainfo_BHZ','stainfo')
+save('stainfo_BHZ','stainfo timegrids')
