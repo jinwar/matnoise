@@ -6,4 +6,4 @@ matnoise_png_stainfo.m
 	go through the data coverage for each station and find the data gap.
 
 checkspectrum.m
-	check the spectrum of stations to see how long it takes for the instruments to be stablized after they're powered up.
+	check the spectrum of one station for 100 random hours
