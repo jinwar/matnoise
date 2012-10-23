@@ -7,3 +7,6 @@ matnoise_png_stainfo.m
 
 checkspectrum.m
 	check the spectrum of one station for 100 random hours
+
+checkstable.m
+	Check the stablity after the instrument was re-powered for a certain time.
