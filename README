@@ -10,3 +10,6 @@ checkspectrum.m
 
 checkstable.m
 	Check the stablity after the instrument was re-powered for a certain time.
+
+calcinstresp.m
+	Code written by Josh for getting the instrument response from the database

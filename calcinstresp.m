@@ -1,4 +1,4 @@
-function [resp dt]=calcinstresp(dbsnin,sta,chan,time, fflen, lo_corner)
+function [resp dt]=calcinstresp(dbsnin,sta,chan,time,windowlength, lo_corner)
 %function [resp dt]=calcinstresp(dbsnin,sta,chan,time, fflen, lo_corner)
 % From a station and channel and pointer to sensor-instrument join, get a
 % response curve vs frequency
@@ -14,6 +14,8 @@ function [resp dt]=calcinstresp(dbsnin,sta,chan,time, fflen, lo_corner)
 %   OUTPUT resp is instrument response per unit ground DISPLACEMENT
 %     expressed as transfer function:  (timeseries)*(resp)=(ground displacement)
 % GA 3/09
+%
+% Modefied by Ge Jin, Oct 2012 to change the input from points of data to time length
 bufnyq=0.5;
 npoles=5;    % Nominal filter cutoff for response in Butterworth poles (acausal)
 if (time<0)
@@ -28,6 +30,7 @@ respobj=dbresponse(instfile);
     % or dbextfile on join w/ wfdisc?
 [ncalib rsptype samprate] = dbgetv(dbsn,'ncalib','rsptype','samprate');
 dt=1./samprate;
+fflen = round(windowlength*samprate);
 jny1=fflen/2;
 frq=2.*pi.*(0:jny1)./(fflen.*dt);
 frq=[frq,-fliplr(frq(2:jny1))]';     % adjust to FFT convention

@@ -1,11 +1,15 @@
 %% This code is a modification version of Josh's code "matnoise_v3_batch.m"
 %  to do the ambient noise measurement for PNG dataset.
 %  Author: Ge Jin, jinwar@gmail.com
-
+clear;
 % Parameter setting
 %
 dbpath = 'cdpapuall';
 component = 'BHZ';
+time_interval = 3600;
+lo_corner =  0.003;
+array_bgtime = (datenum(2010,3,2) - datenum(1970,1,1))*24*3600;
+array_endtime = (datenum(2011,8,1) - datenum(1970,1,1))*24*3600;
 
 % Initial the dataset
 db = dbopen(dbpath,'r');
@@ -26,13 +30,23 @@ for ista = 1:length(stanames)
 	stainfo(ista).lon = dbgetv(dbsi,'lon');
 end
 
+%gather response
+dbsen=dblookup_table(db,'sensor');
+dbin=dblookup_table(db,'instrument');
+dbsnin=dbjoin(dbsen,dbin);
+for ind=1:length(stainfo)
+	disp(['Getting Instrument Resp for station:' stainfo(ind).staname])
+	thisstn=char(stainfo(ind).staname); 
+	clear resp dtr
+	[resp dtr]=calcinstresp(dbsnin,thisstn,component,-1, time_interval, lo_corner);
+	stainfo(ind).resp =resp;
+	stainfo(ind).dtr = dtr;
+end
+
+
 % Generate time mark array and mark it for all the stations.
 % For PNG dataset, the database time window is:
 % 3/02/2010 (061)  6:59:59.30940 - 8/01/2011 (213)  0:00:36.04000
-array_bgtime = (datenum(2010,3,2) - datenum(1970,1,1))*24*3600;
-%array_bgtime = (datenum(2010,12,2) - datenum(1970,1,1))*24*3600;
-array_endtime = (datenum(2011,8,1) - datenum(1970,1,1))*24*3600;
-time_interval = 3600;
 timegrids = array_bgtime:time_interval:array_endtime;
 NT = length(timegrids);
 
