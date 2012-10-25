@@ -49,7 +49,6 @@ resp(knyq)=acor(knyq);
 lo_w=2*pi*lo_corner;
 hpfiltfrq=( ((frq./lo_w).^(2*npoles))./(1+(frq./lo_w).^(2*npoles)) );
 resp=hpfiltfrq./resp;    % this is normalization transfer function
-resp=hpfiltfrq./resp;
 resp(1)=0;
 knan=find(isnan(resp));
 if ~isempty(knan), resp(knan)=0; end;

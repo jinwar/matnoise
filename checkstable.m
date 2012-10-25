@@ -14,8 +14,8 @@ load stainfo_BHZ.mat
 
 % First try to get some normal spectrum
 % station AGAN seems to be good (ista=1)
-ista=26;
-Nth=2;
+ista=6;
+Nth=3;
 stainfo(ista).staname
 
 substr = sprintf('sta=~/%s/',stainfo(ista).staname);
@@ -27,7 +27,6 @@ for iseg = Nth:length(stainfo(ista).datacover)
 	%if stainfo(ista).datacover(iseg) ==1 && stainfo(ista).datacover(iseg-1) ==0 
 	if sum(stainfo(ista).datacover(iseg-Nth+1:iseg)) ==Nth  ...
 			&& stainfo(ista).datacover(iseg-Nth) ==0
-		segnum = segnum+1;
 		if mod(segnum,10)==0
 			disp(segnum)
 		end
@@ -46,15 +45,25 @@ for iseg = Nth:length(stainfo(ista).datacover)
 			disp('Wrong size of data');
 			continue;
 		end
+		segnum = segnum+1;
 		segdata(segnum,:) = d;
 		trdestroy(trptr);
-		% Normalize each hour
-		ffty = fft(segnum,:);
-		ffty = ffty.*stainfo(ista).resp;
-		segdata(segnum,:) = ifft(ffty);
-		segdata(segnum,:) = segdata(segnum,:)./max(abs(segdata(segnum,:)));
-		segdata(segnum,:) = detrend(segdata(segnum,:));
+
 	end
+end
+
+ori_segdata = segdata;
+for iseg = 1:segnum
+	segdata(iseg,:) = detrend(segdata(iseg,:),'constant');
+	segdata(iseg,:) = detrend(segdata(iseg,:));
+	ffty = fft(segdata(iseg,:));
+	ffty = ffty.*stainfo(ista).resp';
+	segdata(iseg,:) = real(ifft(ffty));
+	% Normalize each hour
+	if max(abs(segdata(iseg,:))) > 0
+		segdata(iseg,:) = segdata(iseg,:)./max(abs(segdata(iseg,:)));
+	end
+	segdata(iseg,:) = detrend(segdata(iseg,:));
 end
 
 avgsegdata = mean(segdata,1);
