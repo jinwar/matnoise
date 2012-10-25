@@ -49,6 +49,9 @@ for iseg = Nth:length(stainfo(ista).datacover)
 		segdata(segnum,:) = d;
 		trdestroy(trptr);
 		% Normalize each hour
+		ffty = fft(segnum,:);
+		ffty = ffty.*stainfo(ista).resp;
+		segdata(segnum,:) = ifft(ffty);
 		segdata(segnum,:) = segdata(segnum,:)./max(abs(segdata(segnum,:)));
 		segdata(segnum,:) = detrend(segdata(segnum,:));
 	end
