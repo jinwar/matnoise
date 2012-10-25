@@ -7,7 +7,7 @@ clear;
 dbpath = 'cdpapuall';
 component = 'BHZ';
 time_interval = 3600;
-lo_corner =  0.003;
+lo_corner =  0.01;
 array_bgtime = (datenum(2010,3,2) - datenum(1970,1,1))*24*3600;
 array_endtime = (datenum(2011,8,1) - datenum(1970,1,1))*24*3600;
 
@@ -22,6 +22,10 @@ dbsi=dblookup_table(db,'site');
 stanames = dbgetv(dbsi,'sta');
 for ista = 1:length(stanames)
 	stan = char(stanames(ista));
+	if ista == 16
+		disp('Change station MAPA to MAPM');
+		stan = 'MAPM';
+	end
 	ksite = dbfind(dbsi,sprintf('sta=~/%s/',stan));
 	dbsi.record = ksite;
 	stainfo(ista).staname = stan;

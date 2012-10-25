@@ -14,7 +14,7 @@ load stainfo_BHZ.mat
 
 % First try to get some normal spectrum
 % station AGAN seems to be good (ista=1)
-for ista = 7:length(stainfo)
+for ista = 16:length(stainfo)
 	stainfo(ista).staname
 	% Number of segments to be averaged.
 	avgN = 100;
@@ -36,7 +36,12 @@ for ista = 7:length(stainfo)
 		te = timegrids(avgind(iseg)+1);
 		trptr = trload_css(dbtr_site,ts,te);
 		trsplice(trptr,5);
-		segdata(iseg,:) = trextract_data(trptr);
+		d = trextract_data(trptr);
+		if length(d)~=180000
+			disp('Wrong data length');
+			continue;
+		end
+		segdata(iseg,:) = d;
 		trdestroy(trptr);
 	end
 
