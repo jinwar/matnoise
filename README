@@ -13,3 +13,6 @@ checkstable.m
 
 calcinstresp.m
 	Code written by Josh for getting the instrument response from the database
+
+fetch_data.m
+	Function to fetch data from antelope and save them as mat files.
