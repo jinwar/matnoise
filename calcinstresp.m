@@ -1,4 +1,4 @@
-function [resp dt]=calcinstresp(dbsnin,sta,chan,time,windowlength, lo_corner)
+function [resp dt]=calcinstresp(dbsnin,sta,chan,time,timelength, samplerate, lo_corner)
 %function [resp dt]=calcinstresp(dbsnin,sta,chan,time, fflen, lo_corner)
 % From a station and channel and pointer to sensor-instrument join, get a
 % response curve vs frequency
@@ -30,7 +30,7 @@ respobj=dbresponse(instfile);
     % or dbextfile on join w/ wfdisc?
 [ncalib rsptype samprate] = dbgetv(dbsn,'ncalib','rsptype','samprate');
 dt=1./samprate;
-fflen = round(windowlength*samprate);
+fflen = round(timelength*samprate);
 jny1=fflen/2;
 frq=2.*pi.*(0:jny1)./(fflen.*dt);
 frq=[frq,-fliplr(frq(2:jny1))]';     % adjust to FFT convention

@@ -42,7 +42,7 @@ for ind=1:length(stainfo)
 	disp(['Getting Instrument Resp for station:' stainfo(ind).staname])
 	thisstn=char(stainfo(ind).staname); 
 	clear resp dtr
-	[resp dtr]=calcinstresp(dbsnin,thisstn,component,-1, time_interval, lo_corner);
+	[resp dtr]=calcinstresp(dbsnin,thisstn,component,-1, time_interval, samplerate, lo_corner);
 	stainfo(ind).resp =resp;
 	stainfo(ind).dtr = dtr;
 end
