@@ -6,23 +6,30 @@ clear
 StableSeg = 1;   % How many hour the instrument stable after being powered
 TimeSegN = 1000;
 
-% Initial the dataset
-dbpath = 'cdpapuall';
-component = 'BHZ';
-db = dbopen(dbpath,'r');
-dbwf=dblookup_table(db,'wfdisc');
-  subsetcomp=sprintf('chan=~/%s/',component);
-dbwf=dbsubset(dbwf,subsetcomp);
-dbsi=dblookup_table(db,'site');
 load stainfo_BHZ.mat
 
-for itime = 1:1
-	for ista = 1:length(stainfo)
-		for jsta = ista:length(stainfo)
+for ista = 1:length(stainfo)
+	for jsta = ista+1:length(stainfo)
+		for itime = 1:11
+			disp([stainfo(ista).staname,'_',stainfo(jsta).staname,'_',num2str(itime)]);
+			filename = sprintf('data/%s_%d.mat',stainfo(ista).staname,itime);
+			if exist(filename,'file')
+				disp(['Cannot find ',filename]);
+				datai = load(filename);
+			else
+				continue;
+			end
+			filename = sprintf('data/%s_%d.mat',stainfo(jsta).staname,itime);
+			if exist(filename,'file')
+				dataj = load(filename);
+			else
+				disp(['Cannot find ',filename]);
+				continue;
+			end
 			xcor_sum=0;
 			xcornum=0;
-			for iseg = itime*1000:(itime+1)*1000-1
-				if mod(iseg,10)==0
+			for iseg = itime*TimeSegN:(itime+1)*TimeSegN-1
+				if mod(iseg,100)==0
 					disp(iseg)
 				end
 				iscor = 1;
@@ -34,17 +41,21 @@ for itime = 1:1
 				end % Make sure station i is stable
 				if sum(stainfo(jsta).datacover(iseg-StableSeg+1:iseg)) < StableSeg
 					iscor =0;
-				end % Make sure station i is stable
+				end % Make sure station j is stable
 
-				
 
 				% Pre-process the data from two stations
 				if iscor
+
+					d1 = datai.segdata(iseg,:);
+					d2 = datai.segdata(iseg,:);
 					fftd1 = fft(d1);
 					fftd2 = fft(d2);
 					% Remove instrument response
-					fftd1 = fftd1.*stainfo(ista).resp;
-					fftd2 = fftd2.*stainfo(jsta).resp;
+					resp1 = cropfft(stainfo(ista).resp,3600);
+					resp2 = cropfft(stainfo(jsta).resp,3600);
+					fftd1 = fftd1.*resp1;
+					fftd2 = fftd2.*resp2;
 					% Whiten
 					fftd1 = spectrumwhiten(fftd1);
 					fftd2 = spectrumwhiten(fftd2);
@@ -52,8 +63,6 @@ for itime = 1:1
 					d1 = real(ifft(fftd1));
 					d2 = real(ifft(fftd2));
 					% Down sample to 1s
-					d1 = downsample(d1,1/stainfo(ista).dtr);
-					d2 = downsample(d2,1/stainfo(ista).dtr);
 					if length(d1)~=length(d2)
 						disp(['Timeseg: ',num2str(iseg), ...
 							'Down Sample Length error' ]);

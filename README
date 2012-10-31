@@ -1,6 +1,7 @@
 Program to do Ambient Noise analysis for PNG Antelope dataset.
 
 files description:
+SCRIPTS:
 
 matnoise_png_stainfo.m
 	go through the data coverage for each station and find the data gap.
@@ -11,8 +12,20 @@ checkspectrum.m
 checkstable.m
 	Check the stablity after the instrument was re-powered for a certain time.
 
-calcinstresp.m
-	Code written by Josh for getting the instrument response from the database
+fetchdata_batch.csh
+	Run function fetch_data to convert Antelope database to matlab mat format with 1s sample rate
+
+makecor.m
+	make the cross-correlation based on the matlab mat database
+	
+FUNCTIONS:
 
 fetch_data.m
 	Function to fetch data from antelope and save them as mat files.
+
+calcinstresp.m
+	Function written by Josh for getting the instrument response from the database
+
+cropfft.m
+	Function to cut the proporal part of fft due to the change of sample rate. ( time length has to be the same)
+
