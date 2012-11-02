@@ -17,6 +17,9 @@ fetchdata_batch.csh
 
 makecor.m
 	make the cross-correlation based on the matlab mat database
+
+stack_xcor.m
+	stack the output of makecor.m and save the averaged station pair xcor in the xcor folder
 	
 FUNCTIONS:
 
@@ -29,3 +32,5 @@ calcinstresp.m
 cropfft.m
 	Function to cut the proporal part of fft due to the change of sample rate. ( time length has to be the same)
 
+plotsinglestaxcor.m
+	Function to plot all the xcor recorded in one station against distance.
