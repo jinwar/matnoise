@@ -20,6 +20,9 @@ for iseg = itime*TimeSegN:(itime+1)*TimeSegN-1;
 	if mod(iseg,100)==0
 		disp(iseg)
 	end
+	if iseg == 0 
+		continue;
+	end
 	if stainfo(ista).datacover(iseg) ==1
 		substr = sprintf('sta=~/%s/',stainfo(ista).staname);
 		dbtr_site = dbsubset(dbwf,substr);

@@ -1,4 +1,4 @@
-function [resp dt]=calcinstresp(dbsnin,sta,chan,time,timelength, samplerate, lo_corner)
+function [resp dt]=calcinstresp(dbsnin,sta,chan,time,timelength, lo_corner)
 %function [resp dt]=calcinstresp(dbsnin,sta,chan,time, fflen, lo_corner)
 % From a station and channel and pointer to sensor-instrument join, get a
 % response curve vs frequency

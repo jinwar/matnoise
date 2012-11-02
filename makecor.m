@@ -15,7 +15,7 @@ load stainfo_BHZ.mat
 
 for ista = 1:length(stainfo)-1
     for jsta = ista+1:length(stainfo)
-		for itime = 1:11
+		for itime = 0:0
 			filename = ['xcor/',stainfo(ista).staname,'_',stainfo(jsta).staname,'_',num2str(itime),'.mat'];
 			if exist(filename,'file') && ~Isoverwrite
 				disp(['Exist ',filename,' Skip!']);
@@ -42,6 +42,9 @@ for ista = 1:length(stainfo)-1
 			for iseg = itime*TimeSegN:(itime+1)*TimeSegN-1
 				if mod(iseg,100)==0
 					disp(iseg)
+				end
+				if iseg == 0
+					continue;
 				end
 				iscor = 1;
 				if stainfo(ista).datacover(iseg) == 0 || stainfo(jsta).datacover(iseg) == 0 

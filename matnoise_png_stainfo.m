@@ -22,10 +22,10 @@ dbsi=dblookup_table(db,'site');
 stanames = dbgetv(dbsi,'sta');
 for ista = 1:length(stanames)
 	stan = char(stanames(ista));
-	if ista == 16
-		disp('Change station MAPA to MAPM');
-		stan = 'MAPM';
-	end
+%	if ista == 16
+%		disp('Change station MAPA to MAPM');
+%		stan = 'MAPM';
+%	end
 	ksite = dbfind(dbsi,sprintf('sta=~/%s/',stan));
 	dbsi.record = ksite;
 	stainfo(ista).staname = stan;
@@ -42,7 +42,7 @@ for ind=1:length(stainfo)
 	disp(['Getting Instrument Resp for station:' stainfo(ind).staname])
 	thisstn=char(stainfo(ind).staname); 
 	clear resp dtr
-	[resp dtr]=calcinstresp(dbsnin,thisstn,component,-1, time_interval, samplerate, lo_corner);
+	[resp dtr]=calcinstresp(dbsnin,thisstn,component,-1, time_interval, lo_corner);
 	stainfo(ind).resp =resp;
 	stainfo(ind).dtr = dtr;
 end
