@@ -21,6 +21,9 @@ makecor.m
 stack_xcor.m
 	stack the output of makecor.m and save the averaged station pair xcor in the xcor folder
 	
+cohere_stack.m
+	calculate the ambient noise using frequency domain method 
+
 FUNCTIONS:
 
 fetch_data.m

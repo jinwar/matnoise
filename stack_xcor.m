@@ -12,7 +12,7 @@ for ista = 1:length(stainfo)
 		xcor_sum = 0;
 		xcornum = 0;
 		disp(['stacking ',stainfo(ista).staname,' and ',stainfo(jsta).staname]);
-		for itime = 1:11
+		for itime = 0:11
 			filename = sprintf('xcor/%s_%s_%d.mat',stainfo(ista).staname,stainfo(jsta).staname,itime);
 			if ~exist(filename,'file')
 				disp(['Cannot find ', filename]);
