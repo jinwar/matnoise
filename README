@@ -37,3 +37,8 @@ cropfft.m
 
 plotsinglestaxcor.m
 	Function to plot all the xcor recorded in one station against distance.
+
+besselzero.m
+	Function returns the zeros of Bessel function, written by Greg von Winckel, download online.
+
+
