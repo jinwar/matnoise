@@ -12,8 +12,8 @@ load stainfo_BHZ.mat
 frange = [0.04 0.15];
 tN = 10;
 refc1 = 3.6;
-refc2 = 2.5;
-refc = 3.5 + (refc2-refc1)/(tN)*[1:tN];
+refc2 = 3.0;
+refc = refc1 + (refc2-refc1)/(tN)*[1:tN];
 
 twloc = frange(1):(frange(2)-frange(1))/(tN-1):frange(2);
 twloc = twloc*2*pi;
@@ -52,7 +52,9 @@ xsp1 = smooth(xsp1,10);
 xsp2 = smooth(xsp2,10);
 
 tw1 = ones(1,tN)*r1./refc;
+tw1_0 = lsqnonlin(@(x) besselerr(x,[xsp1]),[tw1],[tw1]*0.8,[tw1]*1.2);
 tw2 = ones(1,tN)*r2./refc;
+tw2_0 = lsqnonlin(@(x) besselerr(x,[xsp2]),[tw2],[tw2]*0.8,[tw2]*1.2);
 
 x1 = twloc.*tw1;
 x2 = twloc.*tw2;
@@ -61,7 +63,17 @@ xmax = min([max(x1),max(x2)]);
 dx = (waxis(2)-waxis(1))*mean([tw1 tw2]);
 xcommon = xmin:dx:xmax;
 
-tw = lsqnonlin(@(x) xcorferr(x,[xsp1,xsp2]),[tw1 tw2],[tw1 tw2]*0.8,[tw1 tw2]*1.2);
+tw = lsqnonlin(@(x) xcorferr(x,[xsp1,xsp2]),[tw1_0 tw2_0],[tw1_0 tw2_0]*0.8,[tw1_0 tw2_0]*1.2);
+tw1 = tw(1:tN);
+tw2 = tw(tN+1:2*tN);
+
+figure(2)
+clf
+hold on
+plot(1./twloc*2*pi,r1./tw1,'ro-'); 
+plot(1./twloc*2*pi,r2./tw2,'rx-'); 
+plot(1./twloc*2*pi,r1./tw1_0,'ko-'); 
+plot(1./twloc*2*pi,r2./tw2_0,'kx-'); 
 % tw = lsqnonlin(@(x)xcorferr(x,[xsp1,xsp2]),[tw1 tw2]);
 
 

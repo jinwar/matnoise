@@ -1,38 +1,46 @@
-function err = besselerr(tw,xsp)
+function err = besselerr(tw,xsp,varargin)
 % Error function for fitting two nearby station pair's frequency domain xspectrum
 
 global tN
 global waxis
 global twloc
-global bzeros
-global xcommon
+global weight 
 
-sumerr = 0;
-Isfigure=1;
-interpmethod = 'spline';
+Isfigure=0;
+interpmethod = 'linear';
+
+
+if nargin>2 % if option is provided
+     Isfigure = varargin{1};
+end
+
 tw1 = interp1(twloc,tw(1:tN),waxis,interpmethod);
 
 x1 = waxis.*tw1;
 
-xsp1 = xsp(1:length(waxis));
-
-% First part of error: two xspectrum should be like each other
-F1 = interp1(x1,xsp1,xcommon,interpmethod);
-% F1 = F1./max(abs(F1));
-be = besselj(0,xcommon);
+% First part of error: fit the Bessel Function
+F1 = xsp;
+be = besselj(0,x1);
 be = be./mean(abs(be)).*mean([abs(F1)]);
-% Second part of error: Fit Bessel Function
-F1z =  be - F1; 
-err = [F1z];
+F1z =  be(:) - F1(:); 
+F1z = F1z.*weight(:);
+% Second part of error: dispersion curve smoothness
+sm = del2(tw1);
+sm = sm./mean(abs(sm)).*mean(abs(F1z));
 
-if Isfigure
-    figure(1)
+err = [F1z(:); sm(:)*0.2];
+
+% err = err./mean(abs(err))*1;
+
+if Isfigure>0
+    figure(Isfigure)
     clf
+    subplot(2,1,1)
     hold on
-    plot(xcommon,F1);
-    plot(xcommon,be,'k');
-	title( num2str(sum(err.^2)));
+    plot(waxis/2/pi,F1);
+    plot(waxis/2/pi,be,'r');
+	title( num2str(sum(err.^2)./length(err)./sum(F1.^2)*length(F1)));
+    subplot(2,1,2)
+    plot(waxis/2/pi,F1z(:).^2,'k')
 end
-
-
 end

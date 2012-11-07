@@ -5,51 +5,90 @@ clear
 global tN
 global waxis
 global twloc
-global bzeros
-global xcommon
+global weight
 
 load stainfo_BHZ.mat
 frange = [0.04 0.15];
-tN = 10;
+tN = 20;
 refc1 = 3.6;
 refc2 = 2.5;
-refc = 3.5 + (refc2-refc1)/(tN)*[1:tN];
+Isfigure = 0;
+
+refc = refc1 + (refc2-refc1)/(tN)*[1:tN];
 
 twloc = frange(1):(frange(2)-frange(1))/(tN-1):frange(2);
 twloc = twloc*2*pi;
-bzeros = besselzero(0,100,1);
-
-sta1 = 1;
-sta2 = 11;
-r1 = distance(stainfo(sta1).lat,stainfo(sta1).lon,stainfo(sta2).lat,stainfo(sta2).lon);
-r1 = deg2km(r1);
-filename = sprintf('xcorf/%s_%s_f',stainfo(sta1).staname,stainfo(sta2).staname);
-data1 = load(filename);
-xcorf1 = data1.cohere_sum./data1.coherenum;
-
-N = 1000;
-xcorf1 = real(xcorf1(1:N));
-%xcorf1 = smooth(xcorf1,10);
-%xcorf2 = smooth(xcorf2,10);
-faxis = [0:N-1]*1/3600;
-
 waxis = (frange(1):1/3600:frange(2))*2*pi;
 
-xsp1 = interp1(faxis*2*pi,xcorf1,waxis);
 
-xsp1 = smooth(xsp1,10);
+stapairn = 0;
+sumerr = 0;
+for stai = 1:length(stainfo)
+% for stai = 1
+    sta1 = stai;
+   for staj = sta1+1:length(stainfo)
+%     for staj = 25
+        sta2 = staj;
+        r1 = distance(stainfo(sta1).lat,stainfo(sta1).lon,stainfo(sta2).lat,stainfo(sta2).lon);
+        r1 = deg2km(r1);
+        if r1 < 80
+            continue;
+        end
+        filename = sprintf('xcorf/%s_%s_f.mat',stainfo(sta1).staname,stainfo(sta2).staname);
+        if ~exist(filename,'file')
+            disp(['not exist ',filename])
+            continue;
+        end
+        data1 = load(filename);
+        xcorf1 = data1.cohere_sum./data1.coherenum;
+        
+        N = 1000;
+        xcorf1 = real(xcorf1(1:N));
+        xcorf1(1) = 0;
+        %xcorf1 = smooth(xcorf1,10);
+        %xcorf2 = smooth(xcorf2,10);
+        faxis = [0:N-1]*1/3600;
+        
+        
+        xsp1 = interp1(faxis*2*pi,xcorf1,waxis);
+        
+        xsp1 = smooth(xsp1,10);
+        
+        tw1 = ones(1,tN)*r1./refc;
+        
+        weight  = 1./waxis;
+        tw2 = lsqnonlin(@(x) besselerr(x,[xsp1]),[tw1],[tw1]*0.8,[tw1]*1.2);
+        weight(:) = 1;
+        tw = lsqnonlin(@(x) besselerr(x,[xsp1]),[tw2],[tw2]*0.8,[tw2]*1.2);
+        tw=tw2;
 
-tw1 = ones(1,tN)*r1./refc;
+        stapairn = stapairn+1;
+        xspinfo(stapairn).sta1 = sta1;
+        xspinfo(stapairn).sta2 = sta2;
+        xspinfo(stapairn).r = r1;
+        xspinfo(stapairn).tw = tw;
+        xspinfo(stapairn).xsp = xsp1;
+        err = besselerr(tw,xsp1);
+        err = err(1:length(waxis));
+        xspinfo(stapairn).sumerr = sum(err.^2)./sum((xsp1./weight(:)).^2);
+        xspinfo(stapairn).err = err./weight(:);
+        sumerr = sumerr + (xspinfo(stapairn).err);
+        data(stapairn,:) = r1./tw;
 
-x1 = twloc.*tw1;
-xmin = min(x1);
-xmax = max(x1);
-dx = (waxis(2)-waxis(1))*mean([tw1]);
-xcommon = xmin:dx:xmax;
-
-tw = lsqnonlin(@(x) besselerr(x,[xsp1]),[tw1],[tw1]*0.8,[tw1]*1.2);
-% tw = lsqnonlin(@(x)xcorferr(x,[xsp1,xsp2]),[tw1 tw2]);
-figure(2)
-clf
-plot(1./twloc*2*pi,r1./tw);
-
+        disp([filename,' fitted'])
+		if Isfigure
+			besselerr(tw,xsp1,3);
+			figure(2)
+			clf
+			hold on
+			plot(twloc/2/pi,r1./tw1,'ro-');
+			plot(twloc/2/pi,r1./tw,'ko-');
+%             pause
+		end
+        %     pause
+	end %end of station j
+end  %end of station i
+stapairn
+sumerr/stapairn
+%soundsc(rand(2000,1),1000,8)
+save('xspinfo.mat','xspinfo');

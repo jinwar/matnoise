@@ -1,4 +1,5 @@
 *.mat
 *.png
 *.log
+*.m~
 tempmatscript.m
