@@ -39,8 +39,8 @@ if Isfigure>0
     hold on
     plot(waxis/2/pi,F1);
     plot(waxis/2/pi,be,'r');
-	title( num2str(sum(err.^2)./length(err)./sum(F1.^2)*length(F1)));
+% 	title( num2str(sum(err.^2)./length(err)./sum(F1.^2)*length(F1)));
     subplot(2,1,2)
-    plot(waxis/2/pi,F1z(:).^2,'k')
+    plot(waxis/2/pi,(F1z(:)/mean(abs(F1.*weight(:)))).^2,'k')
 end
 end
