@@ -68,6 +68,7 @@ for stai = 1:length(stainfo)
         xspinfo(stapairn).r = r1;
         xspinfo(stapairn).tw = tw;
         xspinfo(stapairn).xsp = xsp1;
+		xspinfo(stapairn).coherenum = data1.coherenum;
         err = besselerr(tw,xsp1);
         err = err(1:length(waxis));
         xspinfo(stapairn).sumerr = sum(err.^2)./sum((xsp1./weight(:)).^2);
@@ -91,4 +92,4 @@ end  %end of station i
 stapairn
 sumerr/stapairn
 %soundsc(rand(2000,1),1000,8)
-save('xspinfo.mat','xspinfo');
+save('xspinfo.mat','xspinfo','twloc','waxis');
