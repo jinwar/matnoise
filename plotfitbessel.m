@@ -15,6 +15,9 @@ twloc = frange(1):(frange(2)-frange(1))/(tN-1):frange(2);
 twloc = twloc*2*pi;
 waxis = (frange(1):1/3600:frange(2))*2*pi;
 goodnum=0;
+weight = waxis;
+weight(:) = 1;
+
 for ind =1:length(xspinfo)
     if xspinfo(ind).sumerr <1
         dx = diff(xspinfo(ind).tw.*twloc);
@@ -27,7 +30,7 @@ for ind =1:length(xspinfo)
             hold on
             plot(twloc/2/pi,xspinfo(ind).r./xspinfo(ind).tw);
             goodnum = goodnum+1;
-			pause(0.5)
+% 			pause(1)
 %             pause
         end
         

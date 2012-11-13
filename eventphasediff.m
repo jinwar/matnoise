@@ -79,7 +79,9 @@ for ista = 1:length(stainfo)
 			ray(csnum,4) = slon(ista2);
 			dt(csnum,:) = tw1(:) - tw2(:);
 			ddist(csnum) = epidist(ista1) - epidist(ista2);
-			fiterr(csnum,:) = (err1(:)./mean(abs(xsp1))).^2 + (err2(:)./mean(abs(xsp2))).^2;
+			sumerr = (err1(:)./mean(abs(xsp1))).^2 + (err2(:)./mean(abs(xsp2))).^2;
+			sumerr = smooth(sumerr,floor(length(waxis)/length(twloc)));
+			fiterr(csnum,:) = interp1(waxis,sumerr,twloc);
 
 
 		end %end of ista2 loop
@@ -99,7 +101,9 @@ for ista = 1:length(stainfo)
 		ray(csnum,4) = evlo;
 		dt(csnum,:) = tw1;
 		ddist(csnum) = epidist(ista1);
-		fiterr(csnum,:) = 2*(err1(:)./mean(abs(xsp1))).^2;
+		sumerr = 2*(err1(:)./mean(abs(xsp1))).^2;
+		sumerr = smooth(sumerr,floor(length(waxis)/length(twloc)));
+		fiterr(csnum,:) = interp1(waxis,sumerr,twloc);
 	end % end of main station nbdist
     
     % correct cycle skipping
