@@ -1,5 +1,5 @@
 
-ie =15
+ie =1
 figure(14)
 clf
 lalim = [min(xnode) max(xnode)];

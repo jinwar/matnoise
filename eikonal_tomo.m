@@ -9,7 +9,8 @@ load xspinfo.mat
 
 % some constants
 ERRTOR=0.5;			 % the error allowed for cs measurement
-mincsnum=10;
+mincsnum=100;
+sou_dist_tol = 80;
 isfigure=0;
 
 r=0.05;
@@ -19,7 +20,6 @@ periods=2*pi./twloc;
 
 smweight0 = 2;
 maxerrweight =2;
-
 
 lalim=[-11.2 -7.8];
 lolim=[148.8 151.5];
@@ -91,6 +91,9 @@ for ie = 1:length(event)
         
         csnum=size(event(ie).dt,1);
         if csnum < mincsnum
+			event_tomo(ie,ip).GV = zeros(size(xi));
+			event_tomo(ie,ip).GV(:) = NaN;
+			event_tomo(ie,ip).raydense = zeros(size(xi));
             continue;
         end
         
@@ -173,6 +176,7 @@ for ie = 1:length(event)
                 end
             end
 			ind = find(diag(W)==0);
+			disp(['Good Measurement Number: ', num2str(length(diag(W))-length(ind))]);
 			disp(['Bad Measurement Number: ', num2str(length(ind))]);
             
             % Rescale the smooth kernel
@@ -212,6 +216,11 @@ for ie = 1:length(event)
         end
         
         GV=(GVx.^2+GVy.^2).^-.5;
+
+%       Get rid of the area that is too close to the source
+		dist = deg2km(distance(xi,yi,event(ie).evla,event(ie).evlo));
+		ind = find(dist < sou_dist_tol);
+		GV(ind) = NaN;
 
 		event_tomo(ie,ip).GV = full(GV);
 		event_tomo(ie,ip).raydense = full(raydense);

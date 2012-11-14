@@ -124,6 +124,8 @@ for ista = 1:length(stainfo)
     event(ista).ddist = ddist;
     event(ista).fiterr = fiterr;
     event(ista).bestcycle = bestcycle;
+	event(ista).evla = evla;
+	event(ista).evlo = evlo;
 	
     if Isfigure && csnum > 0
         plotcsray
