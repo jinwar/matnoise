@@ -13,6 +13,7 @@ tN = 20;
 refc1 = 3.6;
 refc2 = 2.5;
 Isfigure = 0;
+nearstadist = 5;
 
 refc = refc1 + (refc2-refc1)/(tN)*[1:tN];
 
@@ -31,7 +32,7 @@ for stai = 1:length(stainfo)
         sta2 = staj;
         r1 = distance(stainfo(sta1).lat,stainfo(sta1).lon,stainfo(sta2).lat,stainfo(sta2).lon);
         r1 = deg2km(r1);
-        if r1 < 80
+        if r1 < nearstadist
             continue;
         end
         filename = sprintf('xcorf/%s_%s_f.mat',stainfo(sta1).staname,stainfo(sta2).staname);

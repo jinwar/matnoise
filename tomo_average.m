@@ -17,10 +17,10 @@ for ip = 1:size(event_tomo,2)
 				ind = find(event_tomo(ie,ip).GV<waterlevel(1));
 				event_tomo(ie,ip).GV(ind) = waterlevel(1);
 				if ~isnan(event_tomo(ie,ip).GV(ix,iy))
-%					sumGV(ix,iy) = sumGV(ix,iy) + event_tomo(ie,ip).GV(ix,iy)*event_tomo(ie,ip).raydense(ix,iy);
-%					sumweight(ix,iy) = sumweight(ix,iy) + event_tomo(ie,ip).raydense(ix,iy);
-					sumGV(ix,iy) = sumGV(ix,iy) + event_tomo(ie,ip).GV(ix,iy);
-					sumweight(ix,iy) = sumweight(ix,iy) + 1;
+					sumGV(ix,iy) = sumGV(ix,iy) + event_tomo(ie,ip).GV(ix,iy)*event_tomo(ie,ip).raydense(ix,iy);
+					sumweight(ix,iy) = sumweight(ix,iy) + event_tomo(ie,ip).raydense(ix,iy);
+%					sumGV(ix,iy) = sumGV(ix,iy) + event_tomo(ie,ip).GV(ix,iy);
+%					sumweight(ix,iy) = sumweight(ix,iy) + 1;
 				end
 			end
 		end
@@ -28,6 +28,7 @@ for ip = 1:size(event_tomo,2)
 	avgGV = sumGV./sumweight;
 	average_tomo(ip).GV = avgGV;
 	avgtomo(ip).GV = avgGV;
+	avgtomo(ip).raydense = sumweight;
 end
 
 figure(15)
@@ -44,4 +45,18 @@ for ip = 1:size(event_tomo,2)
     title(['Periods: ',num2str(periods(ip))],'fontsize',15)
     colorbar
     caxis([2 4])
+end
+figure(16)
+clf
+lalim = [min(xnode) max(xnode)];
+lolim = [min(ynode) max(ynode)];
+[xi yi] = ndgrid(xnode,ynode);
+for ip = 1:size(event_tomo,2)
+    subplot(4,5,ip)
+    ax = worldmap(lalim, lolim);
+    set(ax, 'Visible', 'off')
+    surfacem(xi,yi,avgtomo(ip).raydense);
+    drawpng
+    title(['Periods: ',num2str(periods(ip))],'fontsize',15)
+    colorbar
 end
