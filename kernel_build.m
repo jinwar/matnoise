@@ -33,7 +33,7 @@ for i = 1:nray
 	r = deg2km(r);
 
 	% set segment length, 1km
-	dr = 5;
+	dr = 1;
     if r<dr
         continue;
     end    
