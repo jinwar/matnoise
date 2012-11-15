@@ -12,10 +12,12 @@ load seiscmap.mat
 lalim=[-11.2 -7.8];
 lolim=[148.8 151.5];
 gridsize=0.1;
+distrange= [3 6]; % in term of wavelength
 smweight0 = 2;
 maxerrweight = 2;
 errlevel = 1;
 r=0.1;
+refv = 3.2;
 
 raydensetol=deg2km(gridsize)*1;
 
@@ -57,10 +59,14 @@ end % end of loop ixsp
 for ip=1:length(periods)
 	disp(' ');
 	disp(['Inversing Period: ',num2str(periods(ip))]);
-	clear ray dt fiterr mat phaseg err raydense
+	clear rays dt fiterr mat phaseg err raydense
 	raynum = 0;
 	for ixsp = 1:length(xspinfo)
 		if xspinfo(ixsp).isgood ==0
+			continue;
+		end
+		if xspinfo(ixsp).r > refv*periods(ip)*distrange(2)...
+				|| xspinfo(ixsp).r < refv*periods(ip)*distrange(1)
 			continue;
 		end
 		raynum = raynum+1;
