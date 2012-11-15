@@ -10,8 +10,9 @@ load xspinfo.mat
 % some constants
 ERRTOR=0.5;			 % the error allowed for cs measurement
 mincsnum=100;
-sou_dist_tol = 80;
+sou_dist_tol = 2;  % count by wavelength
 isfigure=0;
+refv = 3.2;
 
 r=0.05;
 
@@ -77,7 +78,7 @@ toc
 
 
 
-for ie = 1:length(event)
+for ie = 1:size(event,1)
 %for ie = 1
     for ip=1:length(periods)
         
@@ -89,7 +90,7 @@ for ie = 1:length(event)
         
         % read in data and information
         
-        csnum=size(event(ie).dt,1);
+        csnum=event(ie,ip).csnum;
         if csnum < mincsnum
 			event_tomo(ie,ip).GV = zeros(size(xi));
 			event_tomo(ie,ip).GV(:) = NaN;
@@ -99,11 +100,14 @@ for ie = 1:length(event)
         
         % Make the matrix
         %mat=sparse(csnum,stanum);
-        dt=event(ie).dt(:,ip);
-        rays=event(ie).ray;
+        dt=event(ie,ip).dt;
+		if size(dt,1) == 1
+			dt = dt';
+		end
+        rays=event(ie,ip).ray;
         W = sparse(length(dt),length(dt));
         for i=1:length(dt)
-            W(i,i)=1./event(ie).fiterr(i,ip);
+            W(i,i)=1./event(ie,ip).fiterr(i);
         end
         ind = find(W > maxerrweight);
         W(ind) = maxerrweight;
@@ -146,7 +150,7 @@ for ie = 1:length(event)
         
         smweight = smweight0;
         NR=norm(F,1);
-        NA=norm(mat,1);
+        NA=norm(W*mat,1);
         smweight = smweight0*NA/NR;
         
         disp('start inverse');
@@ -181,7 +185,7 @@ for ie = 1:length(event)
             
             % Rescale the smooth kernel
             NR=norm(F,1);
-            NA=norm(mat,1);
+            NA=norm(W*mat,1);
             smweight = smweight0*NA/NR;
             
             A=[W*mat;smweight*F];
@@ -218,8 +222,8 @@ for ie = 1:length(event)
         GV=(GVx.^2+GVy.^2).^-.5;
 
 %       Get rid of the area that is too close to the source
-		dist = deg2km(distance(xi,yi,event(ie).evla,event(ie).evlo));
-		ind = find(dist < sou_dist_tol);
+		dist = deg2km(distance(xi,yi,event(ie,ip).evla,event(ie,ip).evlo));
+		ind = find(dist < sou_dist_tol*periods(ip)*refv);
 		GV(ind) = NaN;
 
 		event_tomo(ie,ip).GV = full(GV);

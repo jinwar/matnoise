@@ -98,7 +98,7 @@ for ip=1:length(periods)
 	% calculate the smoothing weight
 	smweight = smweight0;
 	NR=norm(F,1);
-	NA=norm(mat,1);
+	NA=norm(W*mat,1);
 	smweight = smweight0*NA/NR;
 	
 	disp('start inverse');

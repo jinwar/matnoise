@@ -1,6 +1,10 @@
 clear
 
 load event_tomo.mat
+load seiscmap.mat
+
+r = 0.2;
+
 [m n] = size(event_tomo(1).GV);
 waterlevel = [2 4];
 for ip = 1:size(event_tomo,2)
@@ -43,8 +47,10 @@ for ip = 1:size(event_tomo,2)
     surfacem(xi,yi,avgtomo(ip).GV);
     drawpng
     title(['Periods: ',num2str(periods(ip))],'fontsize',15)
+	avgv = nanmean(avgtomo(ip).GV(:));
+    caxis([avgv*(1-r) avgv*(1+r)])
     colorbar
-    caxis([2 4])
+	colormap(seiscmap)
 end
 figure(16)
 clf
