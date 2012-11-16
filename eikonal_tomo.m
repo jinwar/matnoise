@@ -6,20 +6,18 @@ clear
 load events.mat
 load stainfo_BHZ.mat
 load xspinfo.mat
+load refphasev.mat
 
 % some constants
 ERRTOR=0.5;			 % the error allowed for cs measurement
 mincsnum=100;
-sou_dist_tol = 2;  % count by wavelength
+sou_dist_tol = 1;  % count by wavelength
 isfigure=0;
-refv = 3.2;
-
-r=0.05;
 
 %phvrange(1,:)=[3.55 4.15];
 periods=2*pi./twloc;
 
-smweight0 = 2;
+smweight0 = 1;
 maxerrweight =2;
 
 lalim=[-11.2 -7.8];
@@ -223,7 +221,7 @@ for ie = 1:size(event,1)
 
 %       Get rid of the area that is too close to the source
 		dist = deg2km(distance(xi,yi,event(ie,ip).evla,event(ie,ip).evlo));
-		ind = find(dist < sou_dist_tol*periods(ip)*refv);
+		ind = find(dist < sou_dist_tol*periods(ip)*refv(ip));
 		GV(ind) = NaN;
 
 		event_tomo(ie,ip).GV = full(GV);

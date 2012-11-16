@@ -35,6 +35,8 @@ for ip = 1:size(event_tomo,2)
 	avgtomo(ip).raydense = sumweight;
 end
 
+save('eikonal_avg.mat','avgtomo','xnode','ynode');
+
 figure(15)
 clf
 lalim = [min(xnode) max(xnode)];

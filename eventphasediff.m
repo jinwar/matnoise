@@ -8,12 +8,12 @@ clear
 
 load stainfo_BHZ.mat
 load xspinfo.mat
+load refphasev.mat
 
 % set good bessel fitting
 errlevel = 1;
-nbdist_range = 5; % Count by wavelength
-directray_range = [2 5];
-refv =  3.0;
+nbdist_range = 4; % Count by wavelength
+directray_range = [1 5];
 Isfigure = 0;
 
 periods = 2*pi./twloc;
@@ -65,14 +65,14 @@ for ista = 1:length(stainfo)
 			tw1 = xspinfo(xspids(ista1)).tw;
 			err1 = xspinfo(xspids(ista1)).err;
 			xsp1 = xspinfo(xspids(ista1)).xsp;
-			if epidist(ista1) < directray_range(1)*periods(ip)*refv
+			if epidist(ista1) < directray_range(1)*periods(ip)*refv(ip)
 				continue;
 			end
 			% Find the nearby stations
 			dist = deg2km(distance(slat,slon,slat(ista1),slon(ista1)));
-			nearstaind = find(dist<nbdist_range*periods(ip)*refv & dist > 1);
+			nearstaind = find(dist<nbdist_range*periods(ip)*refv(ip) & dist > 1);
 			for ista2 = nearstaind
-				if epidist(ista2) < directray_range(1)*periods(ip)*refv
+				if epidist(ista2) < directray_range(1)*periods(ip)*refv(ip)
 					continue;
 				end
 				sta2_id = staids(ista2);
@@ -96,8 +96,8 @@ for ista = 1:length(stainfo)
 		end % end of ista1 loop
 
 		% add in station pairs from main station if the epidist is within the directray_range
-		neardist = directray_range(1)*periods(ip)*refv;
-		fardist = directray_range(2)*periods(ip)*refv;
+		neardist = directray_range(1)*periods(ip)*refv(ip);
+		fardist = directray_range(2)*periods(ip)*refv(ip);
 		nearstaind = find(epidist < fardist & epidist > neardist);
 		for ista1 = nearstaind
 			tw1 = xspinfo(xspids(ista1)).tw;
@@ -118,7 +118,7 @@ for ista = 1:length(stainfo)
 		
 		% correct cycle skipping
 		for ics = 1:csnum
-			syndt = ddist(ics)./refv;
+			syndt = ddist(ics)./refv(ip);
 			N = -2:2;
 			testdt = dt(ics) + N.*2*pi./twloc(ip);
 			dterr = abs(testdt - syndt);

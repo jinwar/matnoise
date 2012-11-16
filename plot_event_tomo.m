@@ -1,5 +1,5 @@
-
-ie =1
+load seiscmap
+ie =3
 figure(14)
 clf
 lalim = [min(xnode) max(xnode)];
@@ -13,6 +13,7 @@ for ip=1:20
     drawpng
     title(['Periods: ',num2str(periods(ip))],'fontsize',15)
     colorbar
+	colormap(seiscmap)
     caxis([2.5 3.5])
 end
 
