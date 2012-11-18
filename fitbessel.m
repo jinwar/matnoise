@@ -8,14 +8,16 @@ global twloc
 global weight
 
 load stainfo_BHZ.mat
+load refphasev.mat
 frange = [0.04 0.15];
 tN = 20;
-refc1 = 3.6;
-refc2 = 2.5;
 Isfigure = 0;
 nearstadist = 5;
 
-refc = refc1 + (refc2-refc1)/(tN)*[1:tN];
+%refc1 = 3.6;
+%refc2 = 2.5;
+%refc = refc1 + (refc2-refc1)/(tN)*[1:tN];
+refc = refv;
 
 twloc = frange(1):(frange(2)-frange(1))/(tN-1):frange(2);
 twloc = twloc*2*pi;
