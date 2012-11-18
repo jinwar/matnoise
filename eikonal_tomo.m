@@ -17,7 +17,7 @@ isfigure=0;
 %phvrange(1,:)=[3.55 4.15];
 periods=2*pi./twloc;
 
-smweight0 = 1;
+smweight0 = 0.5;
 maxerrweight =2;
 
 lalim=[-11.2 -7.8];
