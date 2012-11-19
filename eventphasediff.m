@@ -65,7 +65,7 @@ for ista = 1:length(stainfo)
 
 		% Loop through station array and find nearby connections
 		csnum=0;
-		clear ray dt ddist fiterr
+		clear ray dt ddist fiterr avgcoherenum
 		for ista1 = 1:stanum
 			sta1_id = staids(ista1);
 			tw1 = xspinfo(xspids(ista1)).tw;
@@ -98,7 +98,7 @@ for ista = 1:length(stainfo)
 				normerr = (err1(:)./mean(abs(xsp1))).^2 + (err2(:)./mean(abs(xsp2))).^2;
 				normerr = smooth(normerr,floor(length(waxis)/length(twloc)));
 				fiterr(csnum) = interp1(waxis,normerr,twloc(ip));
-				coherenum(csnum) = sqrt(coherenum(ista1)*coherenum(ista2));
+				avgcoherenum(csnum) = sqrt(coherenum(ista1)*coherenum(ista2));
 			end %end of ista2 loop
 		end % end of ista1 loop
 
@@ -121,6 +121,7 @@ for ista = 1:length(stainfo)
 			normerr = 2*(err1(:)./mean(abs(xsp1))).^2;
 			normerr = smooth(normerr,floor(length(waxis)/length(twloc)));
 			fiterr(csnum) = interp1(waxis,normerr,twloc(ip));
+			avgcoherenum(csnum) = coherenum(ista1);
 		end % end of main station nbdist
 		
 		% correct cycle skipping
@@ -135,7 +136,7 @@ for ista = 1:length(stainfo)
 		end
 
 		event(ista,ip).csnum = csnum;
-		if csnum > 0
+		if csnum > 10
 			event(ista,ip).ray = ray;
 			event(ista,ip).dt = dt;
 			event(ista,ip).ddist = ddist;
@@ -143,7 +144,7 @@ for ista = 1:length(stainfo)
 			event(ista,ip).bestcycle = bestcycle;
 			event(ista,ip).evla = evla;
 			event(ista,ip).evlo = evlo;
-			event(ista,ip).coherenum = coherenum;
+			event(ista,ip).coherenum = avgcoherenum;
 		end
 		
 end % end of ip loop
