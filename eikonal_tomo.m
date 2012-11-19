@@ -105,7 +105,7 @@ for ie = 1:size(event,1)
         rays=event(ie,ip).ray;
         W = sparse(length(dt),length(dt));
         for i=1:length(dt)
-            W(i,i)=1./event(ie,ip).fiterr(i);
+            W(i,i)=1./event(ie,ip).fiterr(i)*event(ie,ip).coherenum;
         end
         ind = find(W > maxerrweight);
         W(ind) = maxerrweight;

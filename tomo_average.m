@@ -59,7 +59,7 @@ for ip=1:size(event_tomo,2)
 			end
 		end
 	end
-	avgtomo(ip).GVvar = sumvar./sumweight;
+	avgtomo(ip).GVvar = sqrt(sumvar./sumweight);
 end
 
 save('eikonal_avg.mat','avgtomo','xnode','ynode');
@@ -94,6 +94,7 @@ for ip = 1:size(event_tomo,2)
     drawpng
     title(['Periods: ',num2str(periods(ip))],'fontsize',15)
 	colorbar
+	caxis([0 1])
 end
 figure(17)
 clf

@@ -15,17 +15,22 @@ errlevel = 1;
 nbdist_range = 4; % Count by wavelength
 directray_range = [2 5];
 Isfigure = 0;
+badstas = [40];
 
 periods = 2*pi./twloc;
 
 for ixsp = 1:length(xspinfo)
-	xspinfo(ixsp).isgood = 0;
-	if xspinfo(ixsp).sumerr < errlevel
-%         dx = diff(xspinfo(ixsp).tw.*twloc);
-%         badind = find(dx<0);
-%         if length(badind)==0
-			xspinfo(ixsp).isgood = 1;
-% 		end
+	xspinfo(ixsp).isgood = 1;
+	if xspinfo(ixsp).sumerr > errlevel
+			xspinfo(ixsp).isgood = 0;
+	end
+	ind = find(badstas == xspinfo(ixsp).sta1);
+	if ~isempty(ind)
+		xspinfo(ixsp).isgood = 0;
+	end
+	ind = find(badstas == xspinfo(ixsp).sta2);
+	if ~isempty(ind)
+		xspinfo(ixsp).isgood = 0;
 	end
 end % end of loop ixsp
 
@@ -55,6 +60,7 @@ for ista = 1:length(stainfo)
 			staids(stanum) = staid;
 			xspids(stanum) = ixsp;
 			epidist(stanum) = deg2km(distance(evla,evlo,slat(stanum),slon(stanum)));
+			coherenum(stanum) = xspinfo(ixsp).coherenum;
 		end % end of xsp loop
 
 		% Loop through station array and find nearby connections
@@ -92,6 +98,7 @@ for ista = 1:length(stainfo)
 				normerr = (err1(:)./mean(abs(xsp1))).^2 + (err2(:)./mean(abs(xsp2))).^2;
 				normerr = smooth(normerr,floor(length(waxis)/length(twloc)));
 				fiterr(csnum) = interp1(waxis,normerr,twloc(ip));
+				coherenum(csnum) = sqrt(coherenum(ista1)*coherenum(ista2));
 			end %end of ista2 loop
 		end % end of ista1 loop
 
@@ -136,6 +143,7 @@ for ista = 1:length(stainfo)
 			event(ista,ip).bestcycle = bestcycle;
 			event(ista,ip).evla = evla;
 			event(ista,ip).evlo = evlo;
+			event(ista,ip).coherenum = coherenum;
 		end
 		
 end % end of ip loop

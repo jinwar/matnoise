@@ -12,11 +12,11 @@ load seiscmap.mat
 lalim=[-11.2 -7.8];
 lolim=[148.8 151.5];
 gridsize=0.1;
-distrange= [3 6]; % in term of wavelength
-smweight0 = 2;
+distrange= [2 5]; % in term of wavelength
+smweight0 = 1;
 maxerrweight = 2;
 errlevel = 1;
-r=0.1;
+r=0.2;
 refv = 3.2;
 
 raydensetol=deg2km(gridsize)*1;
