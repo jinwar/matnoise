@@ -13,7 +13,7 @@ load refphasev.mat
 % set good bessel fitting
 errlevel = 1;
 nbdist_range = 4; % Count by wavelength
-directray_range = [1 5];
+directray_range = [2 5];
 Isfigure = 0;
 
 periods = 2*pi./twloc;
@@ -21,11 +21,11 @@ periods = 2*pi./twloc;
 for ixsp = 1:length(xspinfo)
 	xspinfo(ixsp).isgood = 0;
 	if xspinfo(ixsp).sumerr < errlevel
-        dx = diff(xspinfo(ixsp).tw.*twloc);
-        badind = find(dx<0);
-        if length(badind)==0
+%         dx = diff(xspinfo(ixsp).tw.*twloc);
+%         badind = find(dx<0);
+%         if length(badind)==0
 			xspinfo(ixsp).isgood = 1;
-		end
+% 		end
 	end
 end % end of loop ixsp
 

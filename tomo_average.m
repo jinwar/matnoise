@@ -33,6 +33,33 @@ for ip = 1:size(event_tomo,2)
 	average_tomo(ip).GV = avgGV;
 	avgtomo(ip).GV = avgGV;
 	avgtomo(ip).raydense = sumweight;
+	avgtomo(ip).avgV = nanmean(avgGV(:));
+end
+
+% Calculate the variance
+for ip=1:size(event_tomo,2)
+	sumvar = zeros(size(event_tomo(1).GV));
+	for ie = 1:size(event_tomo,1)
+		if size(event_tomo(ie,ip).GV,1)~=m
+			continue;
+		end
+		for ix = 1:m
+			for iy = 1:n
+				if ~isnan(event_tomo(ie,ip).GV(ix,iy))
+					sumvar(ix,iy) = sumvar(ix,iy) + ...
+						(event_tomo(ie,ip).GV(ix,iy)-avgtomo(ip).GV(ix,iy)).^2*event_tomo(ie,ip).raydense(ix,iy);
+				end
+			end
+		end
+	end
+	for ix = 1:m
+		for iy = 1:n
+			if isnan(avgtomo(ip).GV(ix,iy))
+				sumvar(ix,iy) = NaN;
+			end
+		end
+	end
+	avgtomo(ip).GVvar = sumvar./sumweight;
 end
 
 save('eikonal_avg.mat','avgtomo','xnode','ynode');
@@ -55,6 +82,20 @@ for ip = 1:size(event_tomo,2)
 	colormap(seiscmap)
 end
 figure(16)
+clf
+lalim = [min(xnode) max(xnode)];
+lolim = [min(ynode) max(ynode)];
+[xi yi] = ndgrid(xnode,ynode);
+for ip = 1:size(event_tomo,2)
+    subplot(4,5,ip)
+    ax = worldmap(lalim, lolim);
+    set(ax, 'Visible', 'off')
+    surfacem(xi,yi,avgtomo(ip).GVvar);
+    drawpng
+    title(['Periods: ',num2str(periods(ip))],'fontsize',15)
+	colorbar
+end
+figure(17)
 clf
 lalim = [min(xnode) max(xnode)];
 lolim = [min(ynode) max(ynode)];
