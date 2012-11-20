@@ -3,20 +3,23 @@ function plot_ray_vel(ip)
 load xspinfo_zc.mat
 load seiscmap.mat
 load coor.mat
+load stainfo_BHZ.mat
+load eikonal_avg.mat
 
-global stainfo
-
-r = 0.1;
-rrange = [3 6];
+r = 0.2;
+rrange = [2 5];
 
 for ixsp = 1:length(xspinfo)
+	if isempty(xspinfo(ixsp).zctw)
+		continue;
+    end
 	phv(ixsp) = xspinfo(ixsp).r./xspinfo(ixsp).tw(ip);
 	rays(ixsp,1) = stainfo(xspinfo(ixsp).sta1).lat;
 	rays(ixsp,2) = stainfo(xspinfo(ixsp).sta1).lon;
 	rays(ixsp,3) = stainfo(xspinfo(ixsp).sta2).lat;
 	rays(ixsp,4) = stainfo(xspinfo(ixsp).sta2).lon;
 end
-avgphv = nanmean(phv);
+avgphv = avgtomo(ip).avgV;
 
 periods = 2*pi./twloc;
 vrange = avgphv.*[1-r,1+r];
@@ -31,7 +34,7 @@ vx = linspace(vrange(1),vrange(2),size(seiscmap,1));
 			xspinfo(ixsp).r > avgphv*rrange(2)*periods(ip)
 			continue;
 		end
-		v = xspinfo(ixsp).r./xspinfo(ixsp).tw(ip);
+		v = phv(ixsp);
 		if v<vrange(1)
 			v = vrange(1);
 		elseif v>vrange(2)
@@ -51,6 +54,8 @@ vx = linspace(vrange(1),vrange(2),size(seiscmap,1));
 	colormap(seiscmap);
 	colorbar
 	caxis(vrange);
+    title(['Periods: ',num2str(periods(ip))],'fontsize',15)
+	
 
 	figure(25)
 	clf
@@ -61,7 +66,7 @@ vx = linspace(vrange(1),vrange(2),size(seiscmap,1));
 			xspinfo(ixsp).r > avgphv*rrange(2)*periods(ip)
 			continue;
 		end
-		v = xspinfo(ixsp).r./xspinfo(ixsp).tw(ip);
+		v = phv(ixsp);
 		if v<vrange(1)
 			v = vrange(1);
 		elseif v>vrange(2)
@@ -82,4 +87,7 @@ vx = linspace(vrange(1),vrange(2),size(seiscmap,1));
 	colormap(seiscmap);
 	colorbar
 	caxis(vrange);
+    title(['Periods: ',num2str(periods(ip))],'fontsize',15)
+
+	plot_avg_tomo(ip);
 end

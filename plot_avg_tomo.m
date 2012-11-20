@@ -2,7 +2,10 @@ function plot_avg_tomo(ip)
 
 load eikonal_avg.mat
 load seiscmap
+load xspinfo.mat
 r=0.2;
+
+periods = 2*pi./twloc;
 
 figure(40)
 clf
@@ -13,7 +16,7 @@ ax = worldmap(lalim, lolim);
 set(ax, 'Visible', 'off')
 surfacem(xi,yi,avgtomo(ip).GV);
 drawpng
-title(['Periods: ',num2str(ip)],'fontsize',15)
+title(['Periods: ',num2str(periods(ip))],'fontsize',15)
 avgv = nanmean(avgtomo(ip).GV(:));
 caxis([avgv*(1-r) avgv*(1+r)])
 colorbar
@@ -28,7 +31,7 @@ ax = worldmap(lalim, lolim);
 set(ax, 'Visible', 'off')
 surfacem(xi,yi,avgtomo(ip).raydense);
 drawpng
-title(['Ray Dense Periods: ',num2str(ip)],'fontsize',15)
+title(['Ray Dense Periods: ',num2str(periods(ip))],'fontsize',15)
 colorbar
 
 end
