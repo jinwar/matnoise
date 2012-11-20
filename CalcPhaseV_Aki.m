@@ -57,6 +57,12 @@ coherence = coh(:,2); % smoothed coherence;
 % find zeros and calcualte phase velocity at corresponding freqency
 [ind,freqzero,nzero,sign]=FindArrayZero(vec_f, coherence, freq_range);
 
+if nzero == 0
+	freq = NaN;
+	c = NaN; 
+	vg = NaN; 
+	return;
+end
 % if the first crossing is from negative to positive, then discard it.
 if sign(1)==1 
     freqzero=freqzero(2:length(freqzero));

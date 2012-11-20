@@ -1,25 +1,21 @@
 % Script to test the bessel zero crossing method
 % function is coded by Yang Zha
 clear
-load ref_ocean1500.mat
+load 3layermodel.mat
 load xspinfo.mat
 load stainfo_BHZ.mat
 load refphasev.mat
 
 warning off
 
-ref_dispersion(:,1) = f_ref  ;
-ref_dispersion(:,2) = c_ref  ;
-ref_dispersion(:,3) = vg_ref ;
+ref_dispersion(:,1) = 1./vec_T  ;
+ref_dispersion(:,2) = c;
+ref_dispersion(:,3) = vg ;
 ref_dispersion(:,4) = grad_c ;
 ref_dispersion(:,5) = grad_vg;
 
-
-figure(1)
-clf
-hold on
-
 for ixp = 1:length(xspinfo)
+%for ixp = 481
 	disp(ixp)
 	if xspinfo(ixp).r > 80
         sta1 = xspinfo(ixp).sta1;
@@ -41,3 +37,5 @@ for ixp = 1:length(xspinfo)
         end
     end
 end
+
+save xspinfo_zc.mat xspinfo waxis twloc

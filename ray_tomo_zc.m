@@ -5,7 +5,7 @@
 
 % input files
 load stainfo_BHZ.mat
-load xspinfo.mat
+load xspinfo_zc.mat
 load seiscmap.mat
 
 % Set up geometry parameters
@@ -47,12 +47,8 @@ F=Areg;
 % Initial the xsp structure
 for ixsp = 1:length(xspinfo)
 	xspinfo(ixsp).isgood = 0;
-	if xspinfo(ixsp).sumerr < errlevel
-        dx = diff(xspinfo(ixsp).tw.*twloc);
-        badind = find(dx<0);
-        if length(badind)==0
-			xspinfo(ixsp).isgood = 1;
-		end
+	if ~isempty(xspinfo(ixsp).zctw) 
+		xspinfo(ixsp).isgood = 1;
 	end
 end % end of loop ixsp
 
@@ -65,6 +61,9 @@ for ip=1:length(periods)
 		if xspinfo(ixsp).isgood ==0
 			continue;
 		end
+		if isnan(xspinfo(ixsp).zctw(ip))
+			continue;
+		end
 		if xspinfo(ixsp).r > refv*periods(ip)*distrange(2)...
 				|| xspinfo(ixsp).r < refv*periods(ip)*distrange(1)
 			continue;
@@ -74,10 +73,13 @@ for ip=1:length(periods)
 		rays(raynum,2) = stainfo(xspinfo(ixsp).sta1).lon;
 		rays(raynum,3) = stainfo(xspinfo(ixsp).sta2).lat;
 		rays(raynum,4) = stainfo(xspinfo(ixsp).sta2).lon;
-		dt(raynum) = xspinfo(ixsp).tw(ip);
+		dt(raynum) = xspinfo(ixsp).zctw(ip);
 		err = smooth(xspinfo(ixsp).err,round(length(waxis)/length(twloc)));
 		fiterr(raynum) = interp1(waxis(:),err(:),twloc(ip));
 		csnum(raynum) = xspinfo(ixsp).coherenum;
+	end
+	if raynum < 5
+		continue;
 	end
 	if size(dt,1) ~=raynum
 		dt = dt';
@@ -91,7 +93,8 @@ for ip=1:length(periods)
 	% Calculate the weighting matrix
 	W = sparse(length(dt),length(dt));
 	for i=1:length(dt)
-		W(i,i)=1./fiterr(i).*csnum(i);
+%		W(i,i)=1./fiterr(i);
+		W(i,i)=csnum(i);
 	end
 	ind = find(W > maxerrweight);
 	W(ind) = maxerrweight;
@@ -178,7 +181,9 @@ for ip=1:20
     subplot(4,5,ip)
     ax = worldmap(lalim, lolim);
     set(ax, 'Visible', 'off')
-    surfacem(xi,yi,raytomo(ip).GV);
+	if ~isempty(raytomo(ip).GV)
+		surfacem(xi,yi,raytomo(ip).GV);
+	end
     drawpng
     title(['Periods: ',num2str(periods(ip))],'fontsize',15)
 	avgv = nanmean(raytomo(ip).GV(:));
@@ -196,7 +201,9 @@ for ip=1:20
     subplot(4,5,ip)
     ax = worldmap(lalim, lolim);
     set(ax, 'Visible', 'off')
-    surfacem(xi,yi,raytomo(ip).raydense);
+	if ~isempty(raytomo(ip).GV)
+		surfacem(xi,yi,raytomo(ip).raydense);
+	end
     drawpng
     title(['Periods: ',num2str(periods(ip))],'fontsize',15)
     colorbar

@@ -4,7 +4,7 @@ clear
 load xspinfo.mat
 load refphasev.mat
 
-vec_T=[6:25];
+vec_T=[2:25];
 %h_mantle=20.0;
 vpvs = 1.9;
 h_crust=30.0;
@@ -35,4 +35,4 @@ xlabel('period / seconds');
 ylabel('phase velocity / km/s')
 xlim([6 25])
 
-save 2layermodel.mat refmod c vg grad_c grad_vg vec_T
+save 3layermodel.mat refmod c vg grad_c grad_vg vec_T
