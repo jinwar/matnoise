@@ -62,7 +62,7 @@ for ip=1:size(event_tomo,2)
 	avgtomo(ip).GVvar = sqrt(sumvar./sumweight);
 end
 
-save('eikonal_avg.mat','avgtomo','xnode','ynode');
+save('eikonal_avg.mat','avgtomo','xnode','ynode','periods');
 
 figure(15)
 clf

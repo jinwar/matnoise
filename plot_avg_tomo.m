@@ -34,4 +34,17 @@ drawpng
 title(['Ray Dense Periods: ',num2str(periods(ip))],'fontsize',15)
 colorbar
 
+figure(42)
+clf
+lalim = [min(xnode) max(xnode)];
+lolim = [min(ynode) max(ynode)];
+[xi yi] = ndgrid(xnode,ynode);
+ax = worldmap(lalim, lolim);
+set(ax, 'Visible', 'off')
+surfacem(xi,yi,avgtomo(ip).GVvar);
+drawpng
+title(['Variance Periods: ',num2str(periods(ip))],'fontsize',15)
+caxis([0 1])
+colorbar
+
 end

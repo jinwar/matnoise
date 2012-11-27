@@ -12,10 +12,10 @@ load refphasev.mat
 
 % set good bessel fitting
 errlevel = 1;
-nbdist_range = 4; % Count by wavelength
+nbdist_range = 3; % Count by wavelength
 directray_range = [2 5];
-Isfigure = 0;
 badstas = [40];
+Isfigure = 0;
 
 periods = 2*pi./twloc;
 

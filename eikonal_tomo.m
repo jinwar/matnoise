@@ -9,16 +9,18 @@ load xspinfo.mat
 load refphasev.mat
 
 % some constants
-ERRTOR=0.5;			 % the error allowed for cs measurement
-mincsnum=100;
-sou_dist_tol = 1;  % count by wavelength
+mincsnum=50;
+sou_dist_tol = 2;  % count by wavelength
+smweight0 = 1;
+maxerrweight =2;
+fiterrtol =3;
+
 isfigure=0;
 
 %phvrange(1,:)=[3.55 4.15];
 periods=2*pi./twloc;
 
-smweight0 = 0.5;
-maxerrweight =2;
+
 
 lalim=[-11.2 -7.8];
 lolim=[148.8 151.5];
@@ -105,10 +107,15 @@ for ie = 1:size(event,1)
         rays=event(ie,ip).ray;
         W = sparse(length(dt),length(dt));
         for i=1:length(dt)
-            W(i,i)=1./event(ie,ip).fiterr(i)*event(ie,ip).coherenum(i);
+            W(i,i)=1./event(ie,ip).fiterr(i);
         end
         ind = find(W > maxerrweight);
         W(ind) = maxerrweight;
+        ind = find(W < 1/fiterrtol);
+        W(ind) = 0;
+        for i=1:length(dt)
+            W(i,i)=W(i,i)*event(ie,ip).coherenum(i);
+        end
         
         for i=1:csnum
             
