@@ -1,6 +1,5 @@
 function plotsinglefitbessel(sta1,sta2)
 
-
 global tN
 global waxis
 global twloc

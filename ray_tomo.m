@@ -13,8 +13,9 @@ lalim=[-11.2 -7.8];
 lolim=[148.8 151.5];
 gridsize=0.1;
 distrange= [2 5]; % in term of wavelength
-smweight0 = 1;
+smweight0 = 2;
 maxerrweight = 2;
+fiterrtol = 3;
 errlevel = 1;
 r=0.2;
 refv = 3.2;
@@ -91,10 +92,15 @@ for ip=1:length(periods)
 	% Calculate the weighting matrix
 	W = sparse(length(dt),length(dt));
 	for i=1:length(dt)
-		W(i,i)=1./fiterr(i).*csnum(i);
+		W(i,i)=1./fiterr(i);
 	end
 	ind = find(W > maxerrweight);
 	W(ind) = maxerrweight;
+	ind = find(W < 1/fiterrtol);
+	W(ind) = 0;
+	for i=1:length(dt)
+		W(i,i)=W(i,i).*csnum(i);
+	end
 
 	% calculate the smoothing weight
 	smweight = smweight0;
@@ -121,12 +127,17 @@ for ip=1:length(periods)
 		err = mat*phaseg - dt;
 %            err = W*err;
 		stderr=std(err);
+		ind = find(diag(W)==0);
+		disp('Before iter:');
+		disp(['Good Measurement Number: ', num2str(length(diag(W))-length(ind))]);
+		disp(['Bad Measurement Number: ', num2str(length(ind))]);
 		for i=1:length(err)
 			if abs(err(i)) > 2*stderr
 				W(i,i)=0;
 			end
 		end
 		ind = find(diag(W)==0);
+		disp('After iter:');
 		disp(['Good Measurement Number: ', num2str(length(diag(W))-length(ind))]);
 		disp(['Bad Measurement Number: ', num2str(length(ind))]);
 		
@@ -167,7 +178,10 @@ for ip=1:length(periods)
 	raytomo(ip).GV = GV;
 	raytomo(ip).mat = mat;
 	raytomo(ip).raydense = raydense;
+	raytomo(ip).period = periods(ip);
 end % end of period loop
+
+save('raytomo.mat','raytomo','xnode','ynode');
 
 figure(17)
 clf

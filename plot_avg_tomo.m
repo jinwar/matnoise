@@ -14,7 +14,8 @@ lolim = [min(ynode) max(ynode)];
 [xi yi] = ndgrid(xnode,ynode);
 ax = worldmap(lalim, lolim);
 set(ax, 'Visible', 'off')
-surfacem(xi,yi,avgtomo(ip).GV);
+h1=surfacem(xi,yi,avgtomo(ip).GV);
+% set(h1,'facecolor','interp');
 drawpng
 title(['Periods: ',num2str(periods(ip))],'fontsize',15)
 avgv = nanmean(avgtomo(ip).GV(:));
