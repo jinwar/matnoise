@@ -7,15 +7,22 @@ load events.mat
 load stainfo_BHZ.mat
 load xspinfo.mat
 load refphasev.mat
+load raytomo.mat
 
 % some constants
 mincsnum=50;
-sou_dist_tol = 2;  % count by wavelength
-smweight0 = 1;
-maxerrweight =2;
-fiterrtol =3;
+sou_dist_tol = 1;  % count by wavelength
+smweight0 =1.0;
+Rdumpweight0 = 0.1;
+Tdumpweight0 = 0.2;
+maxerrweight = 2;
+fiterrtol = 3;
+dterrtol = 1;
+isRsmooth = 1;
 
 isfigure=0;
+isoutput=1;
+issyntest = 0;
 
 %phvrange(1,:)=[3.55 4.15];
 periods=2*pi./twloc;
@@ -30,7 +37,7 @@ gridsize=0.1;
 %lolim=[-125 -90];
 %gridsize=0.3;
 
-raydensetol=deg2km(gridsize)*1;
+raydensetol=deg2km(gridsize)*3;
 lolim=lolim;
 lat0=mean(lalim);
 lon0=mean(lolim);
@@ -65,11 +72,11 @@ Areg = [Areg;sparse(repmat(ind,1,3),[ind-Ny,ind,ind+Ny], ...
 F=sparse(Nx*Ny*2*2,Nx*Ny*2);
 oldprocess=0;
 for n=1:size(Areg,1)
-%    newprocess=floor(n/2/Nx/Ny*10);
-%    if newprocess>oldprocess
-%        disp(['Finished: ', num2str(newprocess), '0%'])
-%        oldprocess=newprocess;
-%    end
+    %    newprocess=floor(n/2/Nx/Ny*10);
+    %    if newprocess>oldprocess
+    %        disp(['Finished: ', num2str(newprocess), '0%'])
+    %        oldprocess=newprocess;
+    %    end
     ind=find(Areg(n,:)~=0);
     F(2*n-1,2*ind-1)=Areg(n,ind);
     F(2*n,2*ind)=Areg(n,ind);
@@ -79,46 +86,53 @@ toc
 
 
 for ie = 1:size(event,1)
-%for ie = 1
-    for ip=1:length(periods)
+% for ie = 1
+        for ip=1:length(periods)
+%     for ip=6
         
         disp(['Event ID: ',num2str(ie)]);
         disp(['Period: ',num2str(periods(ip))]);
         
         %lalim=[27 50.5];
         
-        
         % read in data and information
         
         csnum=event(ie,ip).csnum;
         if csnum < mincsnum
-			event_tomo(ie,ip).GV = zeros(size(xi));
-			event_tomo(ie,ip).GV(:) = NaN;
-			event_tomo(ie,ip).raydense = zeros(size(xi));
+            event_tomo(ie,ip).GV = zeros(size(xi));
+            event_tomo(ie,ip).GV(:) = NaN;
+            event_tomo(ie,ip).raydense = zeros(size(xi));
             continue;
         end
         
         % Make the matrix
         %mat=sparse(csnum,stanum);
-        dt=event(ie,ip).dt;
-		if size(dt,1) == 1
-			dt = dt';
-		end
+        dt=-event(ie,ip).dt;
+        if issyntest
+            dt(:) = -event(ie,ip).ddist / 4;
+        end
+        if size(dt,1) == 1
+            dt = dt';
+        end
+        para = polyfit(event(ie,ip).ddist(:),dt(:),1);
+        avgv = abs(1./para(1));
         rays=event(ie,ip).ray;
         W = sparse(length(dt),length(dt));
         for i=1:length(dt)
             W(i,i)=1./event(ie,ip).fiterr(i);
+            if issyntest
+                W(i,i)=1;
+            end
         end
         ind = find(W > maxerrweight);
         W(ind) = maxerrweight;
         ind = find(W < 1/fiterrtol);
         W(ind) = 0;
         for i=1:length(dt)
-            W(i,i)=W(i,i)*event(ie,ip).coherenum(i);
+            %W(i,i)=W(i,i)*event(ie,ip).coherenum(i);
         end
         
         for i=1:csnum
-            
             Isinmap=1;
             temp=[rays(i,1) rays(i,3)];
             if min(temp) < lalim(1) || max(temp) > lalim(2)
@@ -139,20 +153,34 @@ for ie = 1:size(event,1)
         mat=kernel_build(rays,xnode,ynode);
         toc
         
-        % Calculate the kernel density
-        %sumG=sum(abs(mat),1);
-        ind=1:Nx*Ny;
-        sumG(ind)=sum((mat(:,2*ind).^2+mat(:,2*ind-1).^2).^.5,1);
-		clear raydense
+        % Build the rotation matrix
+        razi = azimuth(xi,yi,event(ie,ip).evla,event(ie,ip).evlo)+180;
+        R = sparse(2*Nx*Ny,2*Nx*Ny);
         for i=1:Nx
             for j=1:Ny
                 n=Ny*(i-1)+j;
-                raydense(i,j)=sumG(n);
+                theta = razi(i,j);
+                R(2*n-1,2*n-1) = cosd(theta);
+                R(2*n-1,2*n) = sind(theta);
+                R(2*n,2*n-1) = -sind(theta);
+                R(2*n,2*n) = cosd(theta);
             end
         end
         
-        % build the smoothing operator
+        % build dumping matrix for St
+        dumpmatT = R(2:2:2*Nx*Ny,:);
+        NR=norm(dumpmatT,1);
+        NA=norm(W*mat,1);
+        dumpweightT = Tdumpweight0*NA/NR;
         
+        % build dumping matrix for SR
+        dumpmatR = R(1:2:2*Nx*Ny-1,:);
+        NR=norm(dumpmatR,1);
+        NA=norm(W*mat,1);
+        dumpweightR = Rdumpweight0*NA/NR;
+        
+        
+        % build the smoothing operator
         smweight = smweight0;
         NR=norm(F,1);
         NA=norm(W*mat,1);
@@ -160,14 +188,18 @@ for ie = 1:size(event,1)
         
         disp('start inverse');
         
-        A=[W*mat;smweight*F];
-        rhs=[W*dt;zeros(size(F,1),1)];
+        if isRsmooth
+            A=[W*mat;smweight*F*R;dumpweightT*dumpmatT;dumpweightR*dumpmatR];
+        else
+            A=[W*mat;smweight*F;dumpweightT*dumpmatT;dumpweightR*dumpmatR];
+        end
+        rhs=[W*dt;zeros(size(F,1),1);zeros(size(dumpmatT,1),1);dumpweightR*ones(size(dumpmatR,1),1)./avgv];
         
-%        disp('start inverse');
-%        tic
+        %        disp('start inverse');
+        %        tic
         phaseg=(A'*A)\(A'*rhs);
-%        toc
-%        disp('Done');
+        %        toc
+        %        disp('Done');
         
         
         % Iteratively down weight the measurement with high error
@@ -177,38 +209,70 @@ for ie = 1:size(event,1)
             niter
             niter=niter+1;
             err = mat*phaseg - dt;
-%            err = W*err;
+            %            err = W*err;
             stderr=std(err);
+            if stderr > dterrtol
+                stderr = dterrtol;
+            end
             for i=1:length(err)
                 if abs(err(i)) > 2*stderr
                     W(i,i)=0;
                 end
             end
-			ind = find(diag(W)==0);
-			disp(['Good Measurement Number: ', num2str(length(diag(W))-length(ind))]);
-			disp(['Bad Measurement Number: ', num2str(length(ind))]);
+            ind = find(diag(W)==0);
+            disp(['Good Measurement Number: ', num2str(length(diag(W))-length(ind))]);
+            disp(['Bad Measurement Number: ', num2str(length(ind))]);
             
             % Rescale the smooth kernel
             NR=norm(F,1);
             NA=norm(W*mat,1);
             smweight = smweight0*NA/NR;
             
-            A=[W*mat;smweight*F];
-            rhs=[W*dt;zeros(size(F,1),1)];
+            % rescale dumping matrix for St
+            NR=norm(dumpmatT,1);
+            NA=norm(W*mat,1);
+            dumpweightT = Tdumpweight0*NA/NR;
             
-%            disp('start inverse');
-%            tic
+            % rescale dumping matrix for SR
+            NR=norm(dumpmatR,1);
+            NA=norm(W*mat,1);
+            dumpweightR = Rdumpweight0*NA/NR;
+            
+            if isRsmooth
+                A=[W*mat;smweight*F*R;dumpweightT*dumpmatT;dumpweightR*dumpmatR];
+            else
+                A=[W*mat;smweight*F;dumpweightT*dumpmatT;dumpweightR*dumpmatR];
+            end
+            rhs=[W*dt;zeros(size(F,1),1);zeros(size(dumpmatT,1),1);dumpweightR*ones(size(dumpmatR,1),1)./avgv];
+            
+            %            disp('start inverse');
+            %            tic
             phaseg=(A'*A)\(A'*rhs);
-%            toc
-%            disp('Done');
+            %            toc
+            %            disp('Done');
             
         end
         
-%        disp(' Get rid of uncertainty area');
+        % Calculate the kernel density
+        %sumG=sum(abs(mat),1);
+        ind=1:Nx*Ny;
+        rayW = W;
+        rayW(find(rayW>1))=1;
+        raymat = rayW*mat;
+        sumG(ind)=sum((raymat(:,2*ind).^2+raymat(:,2*ind-1).^2).^.5,1);
+        clear raydense
         for i=1:Nx
             for j=1:Ny
                 n=Ny*(i-1)+j;
-                if raydense(i,j) < raydensetol
+                raydense(i,j)=sumG(n);
+            end
+        end
+        
+        %        disp(' Get rid of uncertainty area');
+        for i=1:Nx
+            for j=1:Ny
+                n=Ny*(i-1)+j;
+                if raydense(i,j) < raydensetol %&& ~issyntest
                     phaseg(2*n-1)=NaN;
                     phaseg(2*n)=NaN;
                 end
@@ -223,17 +287,97 @@ for ie = 1:size(event,1)
                 GVy(i,j)= phaseg(2*n);
             end
         end
-        
         GV=(GVx.^2+GVy.^2).^-.5;
-
-%       Get rid of the area that is too close to the source
-		dist = deg2km(distance(xi,yi,event(ie,ip).evla,event(ie,ip).evlo));
-		ind = find(dist < sou_dist_tol*periods(ip)*refv(ip));
-		GV(ind) = NaN;
-
-		event_tomo(ie,ip).GV = full(GV);
-		event_tomo(ie,ip).raydense = full(raydense);
+        
+        
+        
+        %       Get rid of the area that is too close to the source
+        dist = deg2km(distance(xi,yi,event(ie,ip).evla,event(ie,ip).evlo));
+        ind = find(dist < sou_dist_tol*periods(ip)*refv(ip));
+        if ~issyntest
+            GV(ind) = NaN;
+        end
+        
+        event_tomo(ie,ip).GV = full(GV);
+        event_tomo(ie,ip).raydense = full(raydense);
+        
+        if isfigure
+            figure(22)
+            clf
+            ax = worldmap(lalim, lolim);
+            set(ax, 'Visible', 'off');
+            surfacem(xi,yi,GV);
+            load seiscmap
+            colormap(seiscmap)
+            drawpng
+            colorbar
+            avgphv = nanmean(raytomo(ip).GV(:));
+            r = 0.2;
+            caxis([avgphv*(1-r) avgphv*(1+r)])
+            if issyntest
+                caxis([3.5 4.5])
+                for iray = 1:size(rays,1)
+                     err = mat*phaseg - dt;
+                    if abs(err(iray))>2
+                        plotm([rays(iray,1),rays(iray,3)],[rays(iray,2) rays(iray,4)],'r')
+                    else
+                        plotm([rays(iray,1),rays(iray,3)],[rays(iray,2) rays(iray,4)],'k')
+                    end
+                end
+            end
+            plotm(event(ie,ip).evla,event(ie,ip).evlo,'rv','markersize',20);
+            title('apparent phase V')
+            
+            
+            figure(23)
+            clf
+            ax = worldmap(lalim, lolim);
+            set(ax, 'Visible', 'off');
+            if ~issyntest
+                surfacem(xi,yi,GV-raytomo(ip).GV);
+            else
+                surfacem(xi,yi,GV-4);
+            end
+            load seiscmap
+            colormap(seiscmap)
+            drawpng
+            colorbar
+            title('Error to ray tomo');
+            caxis([-0.5 0.5])
+            disp(['Error to Ray tomo: ' ,num2str(nanmean(abs(GV(:)-raytomo(ip).GV(:))))]);
+            
+            Sr = R*phaseg;
+            for i=1:Nx
+                for j=1:Ny
+                    n=Ny*(i-1)+j;
+                    GVr(i,j)= Sr(2*n-1);
+                    GVt(i,j)= Sr(2*n);
+                end
+            end
+            figure(24)
+            clf
+            ax = worldmap(lalim, lolim);
+            set(ax, 'Visible', 'off');
+            surfacem(xi,yi,GVr);
+            load seiscmap
+            colormap(seiscmap)
+            drawpng
+            colorbar
+            title('Sr');
+            figure(25)
+            clf
+            ax = worldmap(lalim, lolim);
+            set(ax, 'Visible', 'off');
+            surfacem(xi,yi,GVt);
+            load seiscmap
+            colormap(seiscmap)
+            drawpng
+            colorbar
+            title('St');
+        end
         
     end	% end of period loop
 end % end of event loop
-save('event_tomo.mat','event_tomo','xnode','ynode','periods');
+if isoutput
+    save('event_tomo.mat','event_tomo','xnode','ynode','periods');
+end

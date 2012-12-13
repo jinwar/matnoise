@@ -1,7 +1,6 @@
 Program to do Ambient Noise analysis for PNG Antelope dataset.
 
 files description:
-SCRIPTS:
 
 matnoise_png_stainfo.m
 	go through the data coverage for each station and find the data gap.
@@ -23,8 +22,6 @@ stack_xcor.m
 	
 cohere_stack.m
 	calculate the ambient noise using frequency domain method 
-
-FUNCTIONS:
 
 fetch_data.m
 	Function to fetch data from antelope and save them as mat files.

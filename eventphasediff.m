@@ -12,7 +12,7 @@ load refphasev.mat
 
 % set good bessel fitting
 errlevel = 1;
-nbdist_range = 3; % Count by wavelength
+nbdist_range = 4; % Count by wavelength
 directray_range = [2 5];
 badstas = [40];
 Isfigure = 0;
@@ -45,6 +45,7 @@ for ista = 1:length(stainfo)
 
 		% set up station array
 		stanum = 0;
+        clear slat slon staids xspids epidist coherenum
 		for ixsp = xspind
 			if xspinfo(ixsp).isgood == 0
 				continue;
@@ -103,26 +104,26 @@ for ista = 1:length(stainfo)
 		end % end of ista1 loop
 
 		% add in station pairs from main station if the epidist is within the directray_range
-		neardist = directray_range(1)*periods(ip)*refv(ip);
-		fardist = directray_range(2)*periods(ip)*refv(ip);
-		nearstaind = find(epidist < fardist & epidist > neardist);
-		for ista1 = nearstaind
-			tw1 = xspinfo(xspids(ista1)).tw;
-			err1 = xspinfo(xspids(ista1)).err;
-			xsp1 = xspinfo(xspids(ista1)).xsp;
-
-			csnum = csnum+1;
-			ray(csnum,1) = slat(ista1);
-			ray(csnum,2) = slon(ista1);
-			ray(csnum,3) = evla;
-			ray(csnum,4) = evlo;
-			dt(csnum) = tw1(ip);
-			ddist(csnum) = epidist(ista1);
-			normerr = 2*(err1(:)./mean(abs(xsp1))).^2;
-			normerr = smooth(normerr,floor(length(waxis)/length(twloc)));
-			fiterr(csnum) = interp1(waxis,normerr,twloc(ip));
-			avgcoherenum(csnum) = coherenum(ista1);
-		end % end of main station nbdist
+% 		neardist = directray_range(1)*periods(ip)*refv(ip);
+% 		fardist = directray_range(2)*periods(ip)*refv(ip);
+% 		nearstaind = find(epidist < fardist & epidist > neardist);
+% 		for ista1 = nearstaind
+% 			tw1 = xspinfo(xspids(ista1)).tw;
+% 			err1 = xspinfo(xspids(ista1)).err;
+% 			xsp1 = xspinfo(xspids(ista1)).xsp;
+% 
+% 			csnum = csnum+1;
+% 			ray(csnum,1) = slat(ista1);
+% 			ray(csnum,2) = slon(ista1);
+% 			ray(csnum,3) = evla;
+% 			ray(csnum,4) = evlo;
+% 			dt(csnum) = tw1(ip);
+% 			ddist(csnum) = epidist(ista1);
+% 			normerr = 2*(err1(:)./mean(abs(xsp1))).^2;
+% 			normerr = smooth(normerr,floor(length(waxis)/length(twloc)));
+% 			fiterr(csnum) = interp1(waxis,normerr,twloc(ip));
+% 			avgcoherenum(csnum) = coherenum(ista1);
+% 		end % end of main station nbdist
 		
 		% correct cycle skipping
 		for ics = 1:csnum

@@ -17,6 +17,7 @@ smweight0 = 2;
 maxerrweight = 2;
 fiterrtol = 3;
 errlevel = 1;
+dterrtol = 2;
 r=0.2;
 refv = 3.2;
 
@@ -76,7 +77,7 @@ for ip=1:length(periods)
 		rays(raynum,3) = stainfo(xspinfo(ixsp).sta2).lat;
 		rays(raynum,4) = stainfo(xspinfo(ixsp).sta2).lon;
 		dt(raynum) = xspinfo(ixsp).tw(ip);
-		err = smooth(xspinfo(ixsp).err,round(length(waxis)/length(twloc)));
+		err = smooth((abs(xspinfo(ixsp).err)./mean(abs(xspinfo(ixsp).xsp))).^2,round(length(waxis)/length(twloc)));
 		fiterr(raynum) = interp1(waxis(:),err(:),twloc(ip));
 		csnum(raynum) = xspinfo(ixsp).coherenum;
 	end
@@ -127,6 +128,9 @@ for ip=1:length(periods)
 		err = mat*phaseg - dt;
 %            err = W*err;
 		stderr=std(err);
+        if stderr > dterrtol
+            stderr = dterrtol
+        end
 		ind = find(diag(W)==0);
 		disp('Before iter:');
 		disp(['Good Measurement Number: ', num2str(length(diag(W))-length(ind))]);

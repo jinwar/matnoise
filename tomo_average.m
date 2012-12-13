@@ -2,14 +2,19 @@ clear
 
 load event_tomo.mat
 load seiscmap.mat
+load coor.mat;
 
 r = 0.2;
+prange = 1:size(event_tomo,2);
 
-[m n] = size(event_tomo(1).GV);
+israydenseweight = 1;
+% prange = 6;
+
+[m n] = size(xi);
 waterlevel = [2 4];
-for ip = 1:size(event_tomo,2)
-	sumGV = zeros(size(event_tomo(1).GV));
-	sumweight = zeros(size(event_tomo(1).GV));
+for ip = prange
+	sumGV = zeros(size(xi));
+	sumweight = zeros(size(xi));
 	for ie = 1:size(event_tomo,1)
 		if size(event_tomo(ie,ip).GV,1)~=m
 			continue;
@@ -21,15 +26,18 @@ for ip = 1:size(event_tomo,2)
 				ind = find(event_tomo(ie,ip).GV<waterlevel(1));
 				event_tomo(ie,ip).GV(ind) = waterlevel(1);
 				if ~isnan(event_tomo(ie,ip).GV(ix,iy))
-					sumGV(ix,iy) = sumGV(ix,iy) + event_tomo(ie,ip).GV(ix,iy)*event_tomo(ie,ip).raydense(ix,iy);
-					sumweight(ix,iy) = sumweight(ix,iy) + event_tomo(ie,ip).raydense(ix,iy);
-%					sumGV(ix,iy) = sumGV(ix,iy) + event_tomo(ie,ip).GV(ix,iy);
-%					sumweight(ix,iy) = sumweight(ix,iy) + 1;
+                    if israydenseweight
+                        sumGV(ix,iy) = sumGV(ix,iy) + event_tomo(ie,ip).GV(ix,iy).^-1*event_tomo(ie,ip).raydense(ix,iy);
+                        sumweight(ix,iy) = sumweight(ix,iy) + event_tomo(ie,ip).raydense(ix,iy);
+                    else
+                        sumGV(ix,iy) = sumGV(ix,iy) + event_tomo(ie,ip).GV(ix,iy).^-1;
+                        sumweight(ix,iy) = sumweight(ix,iy) + 1;
+                    end
 				end
 			end
 		end
 	end
-	avgGV = sumGV./sumweight;
+	avgGV = (sumGV./sumweight).^-1;
 	average_tomo(ip).GV = avgGV;
 	avgtomo(ip).GV = avgGV;
 	avgtomo(ip).raydense = sumweight;
@@ -37,8 +45,8 @@ for ip = 1:size(event_tomo,2)
 end
 
 % Calculate the variance
-for ip=1:size(event_tomo,2)
-	sumvar = zeros(size(event_tomo(1).GV));
+for ip=prange
+	sumvar = zeros(size(xi));
 	for ie = 1:size(event_tomo,1)
 		if size(event_tomo(ie,ip).GV,1)~=m
 			continue;
@@ -69,7 +77,7 @@ clf
 lalim = [min(xnode) max(xnode)];
 lolim = [min(ynode) max(ynode)];
 [xi yi] = ndgrid(xnode,ynode);
-for ip = 1:size(event_tomo,2)
+for ip = prange
     subplot(4,5,ip)
     ax = worldmap(lalim, lolim);
     set(ax, 'Visible', 'off')
@@ -86,7 +94,7 @@ clf
 lalim = [min(xnode) max(xnode)];
 lolim = [min(ynode) max(ynode)];
 [xi yi] = ndgrid(xnode,ynode);
-for ip = 1:size(event_tomo,2)
+for ip = prange
     subplot(4,5,ip)
     ax = worldmap(lalim, lolim);
     set(ax, 'Visible', 'off')
@@ -101,7 +109,7 @@ clf
 lalim = [min(xnode) max(xnode)];
 lolim = [min(ynode) max(ynode)];
 [xi yi] = ndgrid(xnode,ynode);
-for ip = 1:size(event_tomo,2)
+for ip = prange
     subplot(4,5,ip)
     ax = worldmap(lalim, lolim);
     set(ax, 'Visible', 'off')
