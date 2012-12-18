@@ -11,7 +11,8 @@ load stainfo_BHZ.mat
 load refphasev.mat
 frange = [0.04 0.15];
 tN = 20;
-Isfigure = 0;
+Isfigure =0;
+isoutput = 1;
 nearstadist = 5;
 
 refc1 = 3.6;
@@ -29,8 +30,8 @@ sumerr = 0;
 for stai = 1:length(stainfo)
 % for stai = 1
     sta1 = stai;
-   for staj = sta1+1:length(stainfo)
-%     for staj = 25
+       for staj = sta1+1:length(stainfo)
+%     for staj = 14
         sta2 = staj;
         r1 = distance(stainfo(sta1).lat,stainfo(sta1).lon,stainfo(sta2).lat,stainfo(sta2).lon);
         r1 = deg2km(r1);
@@ -64,35 +65,36 @@ for stai = 1:length(stainfo)
         weight(:) = 1;
         tw = lsqnonlin(@(x) besselerr(x,[xsp1]),[tw2],[tw2]*0.8,[tw2]*1.2);
         tw=tw2;
-
+        
         stapairn = stapairn+1;
         xspinfo(stapairn).sta1 = sta1;
         xspinfo(stapairn).sta2 = sta2;
         xspinfo(stapairn).r = r1;
         xspinfo(stapairn).tw = tw;
         xspinfo(stapairn).xsp = xsp1;
-		xspinfo(stapairn).coherenum = data1.coherenum;
+        xspinfo(stapairn).coherenum = data1.coherenum;
         err = besselerr(tw,xsp1);
         err = err(1:length(waxis));
         xspinfo(stapairn).sumerr = sum(err.^2)./sum((xsp1./weight(:)).^2);
         xspinfo(stapairn).err = err./weight(:);
         sumerr = sumerr + (xspinfo(stapairn).err);
         data(stapairn,:) = r1./tw;
-
+        
         disp([filename,' fitted'])
-		if Isfigure
-			besselerr(tw,xsp1,3);
-			figure(2)
-			clf
-			hold on
-			plot(twloc/2/pi,r1./tw1,'ro-');
-			plot(twloc/2/pi,r1./tw,'ko-');
-%             pause
-		end
+        if Isfigure
+            besselerr(tw,xsp1,3);
+            figure(2)
+            clf
+            hold on
+            plot(twloc/2/pi,r1./tw1,'ro-');
+            plot(twloc/2/pi,r1./tw,'ko-');
+            %             pause
+        end
         %     pause
-	end %end of station j
+    end %end of station j
 end  %end of station i
 stapairn
-sumerr/stapairn
 %soundsc(rand(2000,1),1000,8)
-save('xspinfo.mat','xspinfo','twloc','waxis');
+if isoutput
+    save('xspinfo.mat','xspinfo','twloc','waxis');
+end
