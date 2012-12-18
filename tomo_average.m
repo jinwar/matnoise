@@ -7,7 +7,7 @@ load coor.mat;
 r = 0.2;
 prange = 1:size(event_tomo,2);
 
-israydenseweight = 1;
+israydenseweight = 0;
 % prange = 6;
 
 [m n] = size(xi);
@@ -54,8 +54,13 @@ for ip=prange
 		for ix = 1:m
 			for iy = 1:n
 				if ~isnan(event_tomo(ie,ip).GV(ix,iy))
-					sumvar(ix,iy) = sumvar(ix,iy) + ...
-						(event_tomo(ie,ip).GV(ix,iy)-avgtomo(ip).GV(ix,iy)).^2*event_tomo(ie,ip).raydense(ix,iy);
+                    if israydenseweight
+						sumvar(ix,iy) = sumvar(ix,iy) + ...
+							(event_tomo(ie,ip).GV(ix,iy)-avgtomo(ip).GV(ix,iy)).^2*event_tomo(ie,ip).raydense(ix,iy);
+					else
+						sumvar(ix,iy) = sumvar(ix,iy) + ...
+							(event_tomo(ie,ip).GV(ix,iy)-avgtomo(ip).GV(ix,iy)).^2;
+					end
 				end
 			end
 		end

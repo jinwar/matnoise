@@ -16,7 +16,7 @@ xmin = min(xnode);
 ymin = min(ynode);
 xmax = max(xnode);
 ymax = max(ynode);
-dr = deg2km(mean(diff(xnode)))/10;
+dr = deg2km(mean(diff(xnode)))/100;
 
 Dx = xmax - xmin;
 Dy = ymax - ymin;

@@ -2,7 +2,7 @@ load raytomo.mat
 load eikonal_avg.mat
 load coor.mat
 r = 0.2;
-ip=3;
+ip=8;
 avgphv = nanmean(raytomo(ip).GV(:));
 
 figure(51)

@@ -1,3 +1,3 @@
-eventphasediff
+%eventphasediff
 eikonal_tomo
 tomo_average

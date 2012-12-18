@@ -12,9 +12,9 @@ load raytomo.mat
 % some constants
 mincsnum=50;
 sou_dist_tol = 1;  % count by wavelength
-smweight0 =1.0;
-Rdumpweight0 = 0.1;
-Tdumpweight0 = 0.2;
+smweight0 = 2.0;
+Rdumpweight0 = 0.0;
+Tdumpweight0 = 0.0;
 maxerrweight = 2;
 fiterrtol = 3;
 dterrtol = 1;
@@ -88,7 +88,7 @@ toc
 for ie = 1:size(event,1)
 % for ie = 1
         for ip=1:length(periods)
-%     for ip=6
+%     for ip=10
         
         disp(['Event ID: ',num2str(ie)]);
         disp(['Period: ',num2str(periods(ip))]);
@@ -110,6 +110,7 @@ for ie = 1:size(event,1)
         dt=-event(ie,ip).dt;
         if issyntest
             dt(:) = -event(ie,ip).ddist / 4;
+            ddist = -event(ie,ip).ddist;
         end
         if size(dt,1) == 1
             dt = dt';
@@ -154,7 +155,7 @@ for ie = 1:size(event,1)
         toc
         
         % Build the rotation matrix
-        razi = azimuth(xi,yi,event(ie,ip).evla,event(ie,ip).evlo)+180;
+        razi = azimuth(xi+gridsize/2,yi+gridsize/2,event(ie,ip).evla,event(ie,ip).evlo)+180;
         R = sparse(2*Nx*Ny,2*Nx*Ny);
         for i=1:Nx
             for j=1:Ny
@@ -269,6 +270,7 @@ for ie = 1:size(event,1)
         end
         
         %        disp(' Get rid of uncertainty area');
+        fullphaseg = phaseg;
         for i=1:Nx
             for j=1:Ny
                 n=Ny*(i-1)+j;
@@ -315,9 +317,10 @@ for ie = 1:size(event,1)
             r = 0.2;
             caxis([avgphv*(1-r) avgphv*(1+r)])
             if issyntest
-                caxis([3.5 4.5])
+                caxis([3.8 4.2])
+%                 err = mat*phaseg - dt;
                 for iray = 1:size(rays,1)
-                     err = mat*phaseg - dt;
+                     
                     if abs(err(iray))>2
                         plotm([rays(iray,1),rays(iray,3)],[rays(iray,2) rays(iray,4)],'r')
                     else
@@ -344,6 +347,9 @@ for ie = 1:size(event,1)
             colorbar
             title('Error to ray tomo');
             caxis([-0.5 0.5])
+            if issyntest
+                caxis([-0.1 0.1])
+            end
             disp(['Error to Ray tomo: ' ,num2str(nanmean(abs(GV(:)-raytomo(ip).GV(:))))]);
             
             Sr = R*phaseg;
@@ -374,6 +380,10 @@ for ie = 1:size(event,1)
             drawpng
             colorbar
             title('St');
+            figure(26)
+            clf
+            hist(err)
+
         end
         
     end	% end of period loop
