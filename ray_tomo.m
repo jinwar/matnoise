@@ -12,12 +12,13 @@ load seiscmap.mat
 lalim=[-11.2 -7.8];
 lolim=[148.8 151.5];
 gridsize=0.1;
-distrange= [2 5]; % in term of wavelength
-smweight0 = 2;
+distrange= [1.5 6]; % in term of wavelength
+smweight0 = 1;
 maxerrweight = 2;
 fiterrtol = 3;
 errlevel = 1;
 dterrtol = 2;
+snrtol = 1.1;
 r=0.2;
 refv = 3.2;
 
@@ -49,12 +50,9 @@ F=Areg;
 % Initial the xsp structure
 for ixsp = 1:length(xspinfo)
 	xspinfo(ixsp).isgood = 0;
-	if xspinfo(ixsp).sumerr < errlevel
-        dx = diff(xspinfo(ixsp).tw.*twloc);
-        badind = find(dx<0);
-        if length(badind)==0
-			xspinfo(ixsp).isgood = 1;
-		end
+	if xspinfo(ixsp).sumerr < errlevel ...
+            && xspinfo(ixsp).snr > snrtol && xspinfo(ixsp).coherenum > 2000
+        xspinfo(ixsp).isgood = 1;
 	end
 end % end of loop ixsp
 
@@ -80,6 +78,7 @@ for ip=1:length(periods)
 		err = smooth((abs(xspinfo(ixsp).err)./mean(abs(xspinfo(ixsp).xsp))).^2,round(length(waxis)/length(twloc)));
 		fiterr(raynum) = interp1(waxis(:),err(:),twloc(ip));
 		csnum(raynum) = xspinfo(ixsp).coherenum;
+        snr(raynum) = xspinfo(ixsp).snr;
 	end
 	if size(dt,1) ~=raynum
 		dt = dt';
@@ -100,7 +99,7 @@ for ip=1:length(periods)
 	ind = find(W < 1/fiterrtol);
 	W(ind) = 0;
 	for i=1:length(dt)
-		W(i,i)=W(i,i).*csnum(i);
+		W(i,i)=W(i,i).*(csnum(i).^0.5);
 	end
 
 	% calculate the smoothing weight
