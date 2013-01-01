@@ -19,6 +19,7 @@ fiterrtol = 3;
 errlevel = 1;
 dterrtol = 2;
 snrtol = 1.1;
+isoutput = 1;
 r=0.2;
 refv = 3.2;
 
@@ -183,9 +184,10 @@ for ip=1:length(periods)
 	raytomo(ip).raydense = raydense;
 	raytomo(ip).period = periods(ip);
 end % end of period loop
-
+if isoutput
 save('raytomo.mat','raytomo','xnode','ynode');
-
+save('coor.mat','xi','yi','xnode','ynode','gridsize','lalim','lolim');
+end
 figure(17)
 clf
 lalim = [min(xnode) max(xnode)];

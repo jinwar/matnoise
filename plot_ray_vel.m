@@ -8,7 +8,7 @@ load raytomo.mat
 
 
 r = 0.2;
-rrange = [2 5];
+rrange = [1 6];
 if ~exist('ip','var')
     ip=16;
 end
