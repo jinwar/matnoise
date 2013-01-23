@@ -43,7 +43,7 @@ for ind=1:length(stainfo)
 	thisstn=char(stainfo(ind).staname); 
 	clear resp dtr
 	[resp dtr]=calcinstresp(dbsnin,thisstn,component,-1, time_interval, lo_corner);
-	stainfo(ind).resp =resp;
+	stainfo(ind).resp = resp;
 	stainfo(ind).dtr = dtr;
 end
 
