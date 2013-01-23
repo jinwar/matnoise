@@ -3,8 +3,8 @@
 %
 
 dbpath = 'cdpapuall';
-time_interval = 3600;
-lo_corner =  0.001;
+time_interval = 6000;
+lo_corner =  0.005;
 
 db = dbopen(dbpath,'r');
 dbwf=dblookup_table(db,'wfdisc');
@@ -41,4 +41,4 @@ for ind=1:length(staresp)
 	staresp(ind).dtr = dtr;
 end
 
-
+save staresp.mat staresp
