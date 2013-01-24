@@ -5,6 +5,7 @@
 dbpath = 'cdpapuall';
 time_interval = 6000;
 lo_corner =  0.005;
+component = 'BHZ';
 
 db = dbopen(dbpath,'r');
 dbwf=dblookup_table(db,'wfdisc');
