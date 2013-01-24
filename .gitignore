@@ -2,5 +2,7 @@
 *.png
 *.log
 *.m~
+log
+*count
 tempmatscript.m
 pics

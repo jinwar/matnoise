@@ -7,7 +7,7 @@ TimeSegN = 1000; % Define how large is one mat file segment
 
 % Initial the dataset
 dbpath = 'cdpapuall';
-component = 'BHZ';
+component = 'BDH';
 db = dbopen(dbpath,'r');
 dbwf=dblookup_table(db,'wfdisc');
   subsetcomp=sprintf('chan=~/%s/',component);
@@ -54,4 +54,4 @@ for iseg = itime*TimeSegN:(itime+1)*TimeSegN-1;
 	end
 end % Loop of time segments
 
-save(sprintf('data/%s_%d.mat',stainfo(ista).staname,itime),'segdata');
+save(sprintf('data/%s_%d_%s.mat',stainfo(ista).staname,itime,component),'segdata');
