@@ -12,24 +12,31 @@ load seiscmap.mat
 lalim=[-11.2 -7.8];
 lolim=[148.8 151.5];
 gridsize=0.1;
-distrange= [1.5 6]; % in term of wavelength
-smweight0 = 1;
+distrange= [2 6]; % in term of wavelength
+smweight0 = 2;
 maxerrweight = 2;
 fiterrtol = 3;
 errlevel = 1;
 dterrtol = 2;
 snrtol = 1.1;
 isoutput = 1;
-r=0.2;
+r=0.1;
 refv = 3.2;
-
-raydensetol=deg2km(gridsize)*1;
+raydensetol=deg2km(gridsize)*2;
 
 xnode=lalim(1):gridsize:lalim(2);
 ynode=lolim(1):gridsize:lolim(2);
 Nx = length(xnode);
 Ny = length(ynode);
 periods=2*pi./twloc;
+
+% read in bad station list, if existed
+if exist('badsta.lst')
+	badstnms = textread('badsta.lst','%s');
+	badstaids = find(ismember({stainfo.staname},badstnms));
+	disp('Found Bad stations:')
+	disp(badstnms)
+end
 
 % Set up initial smoothing kernel
 [i,j] = ndgrid(1:Nx,2:(Ny-1));
@@ -54,6 +61,9 @@ for ixsp = 1:length(xspinfo)
 	if xspinfo(ixsp).sumerr < errlevel ...
             && xspinfo(ixsp).snr > snrtol && xspinfo(ixsp).coherenum > 2000
         xspinfo(ixsp).isgood = 1;
+	end
+	if sum(ismember([xspinfo(ixsp).sta1 xspinfo(ixsp).sta2],badstaids)) > 0
+		xspinfo(ixsp).isgood = 0;
 	end
 end % end of loop ixsp
 
@@ -184,15 +194,15 @@ for ip=1:length(periods)
 	raytomo(ip).raydense = raydense;
 	raytomo(ip).period = periods(ip);
 end % end of period loop
+lalim = [min(xnode) max(xnode)];
+lolim = [min(ynode) max(ynode)];
+[xi yi] = ndgrid(xnode,ynode);
 if isoutput
 save('raytomo.mat','raytomo','xnode','ynode');
 save('coor.mat','xi','yi','xnode','ynode','gridsize','lalim','lolim');
 end
 figure(17)
 clf
-lalim = [min(xnode) max(xnode)];
-lolim = [min(ynode) max(ynode)];
-[xi yi] = ndgrid(xnode,ynode);
 for ip=1:20
     subplot(4,5,ip)
     ax = worldmap(lalim, lolim);
