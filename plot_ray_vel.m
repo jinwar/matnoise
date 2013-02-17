@@ -7,20 +7,31 @@ load stainfo_BHZ.mat
 load raytomo.mat
 
 
-r = 0.2;
-rrange = [1 6];
+setup_parameters;
+
 if ~exist('ip','var')
     ip=16;
 end
 
-errlevel = 1;
-snrtol = 1.1;
+ip
+
+% read in bad station list, if existed
+if exist('badsta.lst')
+	badstnms = textread('badsta.lst','%s');
+	badstaids = find(ismember({stainfo.staname},badstnms));
+	disp('Found Bad stations:')
+	disp(badstnms)
+end
+
 % Initial the xsp structure
 for ixsp = 1:length(xspinfo)
 	xspinfo(ixsp).isgood = 0;
 	if xspinfo(ixsp).sumerr < errlevel ...
             && xspinfo(ixsp).snr > snrtol && xspinfo(ixsp).coherenum > 2000
         xspinfo(ixsp).isgood = 1;
+	end
+	if sum(ismember([xspinfo(ixsp).sta1 xspinfo(ixsp).sta2],badstaids)) > 0
+		xspinfo(ixsp).isgood = 0;
 	end
 end % end of loop ixsp
 
@@ -42,8 +53,8 @@ clf
 ax = worldmap(lalim, lolim);
 set(ax, 'Visible', 'off')
 for ixsp = 1:length(xspinfo)
-    if xspinfo(ixsp).r < avgphv*rrange(1)*periods(ip) ||...
-            xspinfo(ixsp).r > avgphv*rrange(2)*periods(ip)
+    if xspinfo(ixsp).r < avgphv*distrange(1)*periods(ip) ||...
+            xspinfo(ixsp).r > avgphv*distrange(2)*periods(ip)
         continue;
     end
     if xspinfo(ixsp).isgood==0
@@ -77,8 +88,8 @@ clf
 ax = worldmap(lalim, lolim);
 set(ax, 'Visible', 'off')
 for ixsp = 1:length(xspinfo)
-    if xspinfo(ixsp).r < avgphv*rrange(1)*periods(ip) ||...
-            xspinfo(ixsp).r > avgphv*rrange(2)*periods(ip)
+    if xspinfo(ixsp).r < avgphv*distrange(1)*periods(ip) ||...
+            xspinfo(ixsp).r > avgphv*distrange(2)*periods(ip)
         continue;
     end
     v = phv(ixsp);
@@ -113,5 +124,8 @@ caxis([avgphv*(1-r) avgphv*(1+r)]);
 drawpng
 colormap(seiscmap);
 colorbar
+for ista = 1:length(stainfo)
+    plotm(stainfo(ista).lat,stainfo(ista).lon,'kv','markersize',10,'MarkerFaceColor','k')
+end
 % 	plot_avg_tomo(ip);
 end

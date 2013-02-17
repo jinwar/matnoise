@@ -9,20 +9,7 @@ load xspinfo.mat
 load seiscmap.mat
 
 % Set up geometry parameters
-lalim=[-11.2 -7.8];
-lolim=[148.8 151.5];
-gridsize=0.1;
-distrange= [2 6]; % in term of wavelength
-smweight0 = 2;
-maxerrweight = 2;
-fiterrtol = 3;
-errlevel = 1;
-dterrtol = 2;
-snrtol = 1.1;
-isoutput = 1;
-r=0.1;
-refv = 3.2;
-raydensetol=deg2km(gridsize)*2;
+setup_parameters
 
 xnode=lalim(1):gridsize:lalim(2);
 ynode=lolim(1):gridsize:lolim(2);
@@ -70,7 +57,7 @@ end % end of loop ixsp
 for ip=1:length(periods)
 	disp(' ');
 	disp(['Inversing Period: ',num2str(periods(ip))]);
-	clear rays dt fiterr mat phaseg err raydense
+	clear rays dt fiterr mat phaseg err raydense dist
 	raynum = 0;
 	for ixsp = 1:length(xspinfo)
 		if xspinfo(ixsp).isgood ==0
@@ -85,6 +72,7 @@ for ip=1:length(periods)
 		rays(raynum,2) = stainfo(xspinfo(ixsp).sta1).lon;
 		rays(raynum,3) = stainfo(xspinfo(ixsp).sta2).lat;
 		rays(raynum,4) = stainfo(xspinfo(ixsp).sta2).lon;
+		dist(raynum) = deg2km(distance(rays(raynum,1),rays(raynum,2),rays(raynum,3),rays(raynum,4)));
 		dt(raynum) = xspinfo(ixsp).tw(ip);
 		err = smooth((abs(xspinfo(ixsp).err)./mean(abs(xspinfo(ixsp).xsp))).^2,round(length(waxis)/length(twloc)));
 		fiterr(raynum) = interp1(waxis(:),err(:),twloc(ip));
@@ -110,7 +98,13 @@ for ip=1:length(periods)
 	ind = find(W < 1/fiterrtol);
 	W(ind) = 0;
 	for i=1:length(dt)
-		W(i,i)=W(i,i).*(csnum(i).^0.5);
+% 		W(i,i)=W(i,i).*(csnum(i).^0.5);
+	end
+	para = polyfit(dist(:),dt,1);
+	polyerr = polyval(para,dist(:)) - dt;
+	errind = find(abs(polyerr) > polyfit_dt_err);
+	for i = errind
+		W(i,i) = 0;
 	end
 
 	% calculate the smoothing weight
