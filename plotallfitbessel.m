@@ -9,6 +9,9 @@ load stainfo_BHZ.mat
 load refphasev.mat
 load xspinfo.mat
 
+figure(2)
+clf
+
 frange = [0.04 0.15];
 tN = 20;
 Isfigure =0;
@@ -42,7 +45,7 @@ weight(:) = 1;
 for ind =1:length(xspinfo)
     if xspinfo(ind).sumerr <1
         dx = diff(xspinfo(ind).tw.*twloc);
-        if xspinfo(ind).sta1 > 35 || xspinfo(ind).sta2>35
+%         if xspinfo(ind).sta1 > 35 || xspinfo(ind).sta2>35
 %             besselerr(xspinfo(ind).tw,xspinfo(ind).xsp,1);
 %             figure(1)
 %             title(num2str(xspinfo(ind).sumerr));
@@ -52,7 +55,7 @@ for ind =1:length(xspinfo)
             goodnum = goodnum+1;
 % 			pause(1)
 %             pause
-        end
+%         end
     end
 end
 goodnum

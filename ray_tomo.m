@@ -98,7 +98,7 @@ for ip=1:length(periods)
 	ind = find(W < 1/fiterrtol);
 	W(ind) = 0;
 	for i=1:length(dt)
-% 		W(i,i)=W(i,i).*(csnum(i).^0.5);
+ 		W(i,i)=W(i,i).*(csnum(i).^0.5);
 	end
 	para = polyfit(dist(:),dt,1);
 	polyerr = polyval(para,dist(:)) - dt;
@@ -187,6 +187,8 @@ for ip=1:length(periods)
 	raytomo(ip).mat = mat;
 	raytomo(ip).raydense = raydense;
 	raytomo(ip).period = periods(ip);
+	raytomo(ip).w = diag(W);
+	raytomo(ip).err = err;
 end % end of period loop
 lalim = [min(xnode) max(xnode)];
 lolim = [min(ynode) max(ynode)];

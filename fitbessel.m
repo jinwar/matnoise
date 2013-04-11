@@ -13,7 +13,7 @@ frange = [0.04 0.15];
 tN = 20;
 Isfigure =0;
 isoutput = 1;
-nearstadist = 5;
+nearstadist = 20;
 
 refc1 = 3.6;
 refc2 = 2.7;
@@ -66,7 +66,7 @@ for stai = 1:length(stainfo)
         tw2 = lsqnonlin(@(x) besselerr(x,[xsp1]),[tw1],[tw1]*0.8,[tw1]*1.2);
         weight(:) = 1;
         tw = lsqnonlin(@(x) besselerr(x,[xsp1]),[tw2],[tw2]*0.8,[tw2]*1.2);
-        tw=tw2;
+%        tw=tw2;
         
         stapairn = stapairn+1;
         xspinfo(stapairn).sta1 = sta1;

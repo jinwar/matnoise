@@ -31,11 +31,15 @@ end
 besselerr(xspinfo(ind).tw,xspinfo(ind).xsp,1);
 figure(1)
 title(num2str(xspinfo(ind).sumerr));
-figure(2)
-clf
-hold on
-plot(2*pi./twloc,xspinfo(ind).r./xspinfo(ind).tw,'b-o');
+subplot(3,1,1)
 title([stainfo(sta1).staname,'--',stainfo(sta2).staname]);
-goodnum = goodnum+1;
+figure(2)
+% clf
+hold on
+faxis = 2*pi./twloc;
+phv = xspinfo(ind).r./xspinfo(ind).tw;
+plot(faxis,phv,'b-o');
+text(faxis(1),phv(1),...
+    [stainfo(sta1).staname,'--',stainfo(sta2).staname]);
         
 end
