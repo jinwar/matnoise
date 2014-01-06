@@ -16,9 +16,11 @@ goodind = find([xspinfo(:).r]<80 & [xspinfo(:).sumerr]<0.5 & ...
 frange = [0.04 0.15];
 waxis = (frange(1):1/3600:frange(2))*2*pi;
 
-sta1 = 1; sta2 = 38;
+sta1 = 1; sta2 = 2;
 ixsp1 = find([xspinfo(:).sta1]==sta1 & [xspinfo(:).sta2]==sta2)
-ixsp2 = 728;
+sta1 = 1; sta2 = 3;
+ixsp2 = find([xspinfo(:).sta1]==sta1 & [xspinfo(:).sta2]==sta2)
+%ixsp2 = 728;
 fontsize =15;
 
 sta1 = xspinfo(ixsp1).sta1;
@@ -52,7 +54,7 @@ plot(waxis/2/pi,be,'r--','linewidth',2);
 xlabel('Frequency (Hz)','fontsize',fontsize);
 ylabel('Amplitude','fontsize',fontsize);
 set(gcf,'position',[100 300 700 400])
-export_fig('pics/besselfit/besselfitwaveform','-transparent','-m2');
+%export_fig('pics/besselfit/besselfitwaveform','-transparent','-m2');
 
 figure(76)
 clf
@@ -63,5 +65,5 @@ xlabel('Period (s)','fontsize',fontsize);
 ylabel('Phase Velocity (km/s)','fontsize',fontsize);
 set(gca,'fontsize',fontsize);
 set(gcf,'position',[800 300 300 400])
-export_fig('pics/besselfit/besselfitphv','-transparent','-m2');
+%export_fig('pics/besselfit/besselfitphv','-transparent','-m2');
 

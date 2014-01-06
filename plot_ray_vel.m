@@ -53,8 +53,8 @@ clf
 ax = worldmap(lalim, lolim);
 set(ax, 'Visible', 'off')
 for ixsp = 1:length(xspinfo)
-    if xspinfo(ixsp).r < avgphv*distrange(1)*periods(ip) ||...
-            xspinfo(ixsp).r > avgphv*distrange(2)*periods(ip)
+    if xspinfo(ixsp).r < refv*distrange(1)*periods(ip) ||...
+            xspinfo(ixsp).r > refv*distrange(2)*periods(ip)
         continue;
     end
     if xspinfo(ixsp).isgood==0
@@ -88,8 +88,8 @@ clf
 ax = worldmap(lalim, lolim);
 set(ax, 'Visible', 'off')
 for ixsp = 1:length(xspinfo)
-    if xspinfo(ixsp).r < avgphv*distrange(1)*periods(ip) ||...
-            xspinfo(ixsp).r > avgphv*distrange(2)*periods(ip)
+    if xspinfo(ixsp).r < refv*distrange(1)*periods(ip) ||...
+            xspinfo(ixsp).r > refv*distrange(2)*periods(ip)
         continue;
     end
     v = phv(ixsp);
@@ -128,4 +128,37 @@ for ista = 1:length(stainfo)
     plotm(stainfo(ista).lat,stainfo(ista).lon,'kv','markersize',10,'MarkerFaceColor','k')
 end
 % 	plot_avg_tomo(ip);
+
+figure(27)
+clf
+ax = worldmap(lalim, lolim);
+set(ax, 'Visible', 'off')
+err_range = [-3 3];
+errx = linspace(err_range(1),err_range(2),size(seiscmap,1));
+for ixsp = 1:size(raytomo(ip).rays,1)
+%	if raytomo(ip).w(ixsp) == 0
+%		continue;
+%	end
+    err = raytomo(ip).err(ixsp);
+    if err<err_range(1)
+        err = err_range(1);
+    elseif err>err_range(2)
+        err = err_range(2);
+    end
+    linecolor = interp1(errx,seiscmap,err);
+    lat(1) = raytomo(ip).rays(ixsp,1);
+    lon(1) = raytomo(ip).rays(ixsp,2);
+    lat(2) = raytomo(ip).rays(ixsp,3);
+    lon(2) = raytomo(ip).rays(ixsp,4);
+    plotm(lat,lon,'color',linecolor);
+end
+for ista = 1:length(stainfo)
+    plotm(stainfo(ista).lat,stainfo(ista).lon,'kv','markersize',10,'MarkerFaceColor','k')
+end
+drawpng
+colormap(seiscmap);
+colorbar
+caxis(err_range);
+title(['Periods: ',num2str(periods(ip))],'fontsize',15)
+
 end

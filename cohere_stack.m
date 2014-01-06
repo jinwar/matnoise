@@ -5,19 +5,23 @@ clear
 % Parameter settings
 StableSeg = 1;   % How many hour the instrument stable after being powered
 TimeSegN = 1000;
-Isoverwrite = 1;
-Isfigure = 1;
+% system
+Isoverwrite = 0;
+Isfigure = 0;
 isoutput = 1;
-iswhiten = 1;
+% Normalization
+is_time_norm = 1;
+is_spectrum_whiten = 0;
+is_remove_events = 0;
 
 load stainfo_BHZ.mat
 
 
 %
-% for ista = 1:length(stainfo)-1
-%     for jsta = ista+1:length(stainfo)
-for ista = 1
-    for jsta = 7:11
+ for ista = 1:length(stainfo)-1
+     for jsta = ista+1:length(stainfo)
+%for ista = 1
+%    for jsta = 2:3
         % Check existing datafile for recovering from last run
         filename = ['xcorf/',stainfo(ista).staname,'_',stainfo(jsta).staname,'_f.mat'];
         if exist(filename,'file') && ~Isoverwrite
@@ -70,15 +74,19 @@ for ista = 1
                     d2 = dataj.segdata(iseg,:);
                     d1 = detrend(d1);
                     d2 = detrend(d2);
+					if is_time_norm
+						d1 = runwin_norm(d1);
+						d2 = runwin_norm(d2);
+					end
                     fftd1 = fft(d1);
                     fftd2 = fft(d2);
                     % Remove instrument response
                     resp1 = cropfft(stainfo(ista).resp,3600);
                     resp2 = cropfft(stainfo(jsta).resp,3600);
-                    fftd1 = fftd1.*resp1;
-                    fftd2 = fftd2.*resp2;
+                    fftd1 = fftd1(:).*resp1(:);
+                    fftd2 = fftd2(:).*resp2(:);
                     % Whiten
-                    if iswhiten
+                    if is_spectrum_whiten
                         fftd1 = spectrumwhiten(fftd1);
                         fftd2 = spectrumwhiten(fftd2);
                     end
@@ -107,8 +115,9 @@ for ista = 1
         end  % end of large time seg
         if coherenum > 1
             if Isfigure
-                figure(1)
+                figure
                 clf
+				set(gcf,'position',[400 400 600 300]);
                 dt = 1;
                 T = length(cohere_sum);
                 faxis = [0:1/T:1/dt/2,-1/dt/2+1/T:1/T:-1/T];
@@ -117,7 +126,8 @@ for ista = 1
                 dist = distance(stainfo(ista).lat,stainfo(ista).lon,stainfo(jsta).lat,stainfo(jsta).lon);
                 dist = deg2km(dist);
                 title(sprintf('%s %s coherency,station distance: %f km',stainfo(ista).staname,stainfo(jsta).staname,dist));
-                xlim([0 0.25])
+                xlim([0.04 0.16])
+				drawnow
                 %				pause
             end
             if isoutput

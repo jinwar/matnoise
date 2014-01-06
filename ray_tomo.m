@@ -189,6 +189,8 @@ for ip=1:length(periods)
 	raytomo(ip).period = periods(ip);
 	raytomo(ip).w = diag(W);
 	raytomo(ip).err = err;
+	raytomo(ip).rays = rays;
+	raytomo(ip).fiterr = fiterr;
 end % end of period loop
 lalim = [min(xnode) max(xnode)];
 lolim = [min(ynode) max(ynode)];
